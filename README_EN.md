@@ -143,6 +143,8 @@ The new 2.0.8 settings codec cannot be read by 2.0.7 or earlier, so settings may
 
 See the [MTTL-W01 2.0 card installation guide](ha-card/README_EN.md) for standalone firmware 2.0.x. It displays total/per-channel sensors using the same entity IDs as the backend 1.0.68 card.
 
+![MTTL-W01 2.0 Home Assistant Lovelace card](ha-card/HA_card.png)
+
 ## Reset cumulative energy
 
 **On 2.0.9 and later, holding the physical main button for at least ten seconds to enter setup SoftAP resets total and all four channel energy readings to zero. This also resets energy when entering setup solely to change Wi-Fi.**
