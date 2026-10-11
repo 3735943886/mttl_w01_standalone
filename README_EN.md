@@ -9,11 +9,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ## Download
 
-**2.0.9 / build `4ccbc26ad84a803d` · October 10, 2026**
+**2.0.10 / build `f58c6ea45632771b` · October 11, 2026**
 
-[Download comMTTL-W01_2.0.9.fwr](firmware/comMTTL-W01_2.0.9.fwr)
+[Download comMTTL-W01_2.0.10.fwr](firmware/comMTTL-W01_2.0.10.fwr)
 
-SHA-256: `30f2816cce89d7503759c4e630b1e6247ca10066a96a892b2524624e5d971d1e`
+SHA-256: `835cc06e2bae837944d894f7767177bca905f37286d5cb00578bac2dde0b8320`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -51,7 +51,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.9.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.0.10.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -116,7 +116,7 @@ restoration to local-patched `1.0.68` and successful boot have been verified on 
 ## Verification and safety
 
 Repeated web OTA, settings/state persistence, Wi-Fi changes, MQTT broker restart
-and router-reboot recovery were verified on the development device. Actual watchdog
+and router-reboot recovery were verified on the development device. With 2.0.10, automatic reconnection was also verified when the strip starts before the router after a power outage. Actual watchdog
 stall recovery, all variants, measurement accuracy and long-term stability remain unverified.
 
 Trusted LANs only: HTTP/MQTT are unencrypted; there is no web login, OTA token or
@@ -154,6 +154,15 @@ Current metering counters become the new baseline, so only subsequent increments
 A held button triggers only once. Setup entry waits for valid channel counters and successful persistence, so sensor/storage errors may delay entry. A failed save preserves previous totals.
 
 ## Version History
+
+### 2.0.10 — 2026-10-11
+
+- Fixed failure to reconnect to saved Wi-Fi when the router starts later than the strip after a full power outage ([#1](https://github.com/af950833/mttl_w01_standalone/issues/1))
+- Removed setup SoftAP/HTTP startup success as a prerequisite for saved-network retry
+- Retry safe network cleanup/recovery after 15 seconds in the fault state, with no fixed limit on saved-network connection attempts
+- Preserve manual setup, relay states, settings and energy totals; automatic recovery does not reset energy
+- Physically verified automatic reconnection without another strip power cycle when the router is switched on after the strip boots
+- Passed 142 mocked OTA tests and existing-function regression checks
 
 ### 2.0.9 — 2026-10-10
 
