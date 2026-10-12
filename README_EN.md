@@ -111,7 +111,7 @@ There is no fixed file-digest allowlist. Image format, size, checksum, SHA-256
 receive/readback consistency and slot compatibility are still checked. These
 checks are not signature authentication; use FWR files from trusted sources only.
 The OTA/restore path passed 142 ARM-execution tests with mocked flash;
-restoration to local-patched `1.0.68` and successful boot have been verified on a physical device. Restoration and boot of stock `1.0.66` have not yet been physically verified.
+restoration to local-patched `1.0.68` and successful boot have been verified on a physical device. Stock `1.0.66` restoration from standalone `2.0.9`, boot into the original setup AP, and normal operation after reprovisioning have also been confirmed on a user's device ([user verification report #2](https://github.com/af950833/mttl_w01_standalone/issues/2)).
 
 ## Verification and safety
 
