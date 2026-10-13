@@ -9,11 +9,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ## Download
 
-**2.0.10 / build `f58c6ea45632771b` · October 11, 2026**
+**2.0.11 / build `325060a093eb8ee2` · October 14, 2026**
 
-[Download comMTTL-W01_2.0.10.fwr](firmware/comMTTL-W01_2.0.10.fwr)
+[Download comMTTL-W01_2.0.11.fwr](firmware/comMTTL-W01_2.0.11.fwr)
 
-SHA-256: `835cc06e2bae837944d894f7767177bca905f37286d5cb00578bac2dde0b8320`
+SHA-256: `085ed5ecdd00abd31ff95c24a7bf60c90a5add05d9c7aa4eec7cc5174596c957`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -24,6 +24,7 @@ Power cutoff was verified on the test device using a 1000W threshold and a hair 
 ## Features
 
 - Configurable temperature, total-current and total-power protection with all-channel cutoff
+- Up to eight schedules: daily, selected weekdays, monthly date or month-end, controlling one or all channels
 
 - SoftAP Wi-Fi setup/scan, LAN Wi-Fi changes and automatic reconnection
 - Individual/all channel control, physical buttons and LEDs
@@ -51,7 +52,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.10.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.0.11.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -125,6 +126,20 @@ are not user authentication.
 
 This repository distributes firmware and documentation, not the complete buildable SDK source.
 
+## Scheduler
+
+1. Open the **Scheduler** tab and select a time zone. The default is UTC+09:00; offsets from UTC−12:00 to UTC+14:00 are available in 15-minute steps. DST is not applied automatically.
+2. Use **Add rule** to create up to eight rules. Choose the recurrence, time, target channel and ON/OFF action. Each rule can be enabled, disabled or deleted.
+3. **Save to device** persists the rules in flash across reboot.
+
+Recurrence options are daily, selected weekdays, monthly date (1–31), and the last day of each month. Missing dates are skipped; month-end and leap years are calculated automatically. Targets are channels 1–4 or all channels. Later rows win conflicting actions for the same channel at the same time.
+
+Hour and minute inputs share a single border. The period selector displays 오전/오후 in Korean and AM/PM in English, independent of the browser language.
+
+Execution requires NTP synchronization. Initial synchronization, reboot and schedule edits anchor the current minute; execution starts with subsequent minutes. Missed events are not replayed. A busy relay queue is retried only within the scheduled minute. Batches require room for all scheduled channel commands; they are not partially admitted.
+
+Existing settings migrate with empty schedules. Saving settings after downgrading to older firmware may clear schedules. Existing protection and manual controls remain in use.
+
 ## Protection settings
 
 | Item | Range | Initial default | Trip condition |
@@ -154,6 +169,17 @@ Current metering counters become the new baseline, so only subsequent increments
 A held button triggers only once. Setup entry waits for valid channel counters and successful persistence, so sensor/storage errors may delay entry. A failed save preserves previous totals.
 
 ## Version History
+
+### 2.0.11 — 2026-10-14
+
+- Added a dedicated Scheduler tab and up to eight flash-persisted rules
+- Daily, selected weekdays, monthly date and month-end; individual/all-channel ON/OFF, enable controls and deletion
+- Automatic month-end/leap-year calculation, missing-date skipping and later-row precedence for conflicts
+- Fixed UTC offset selection, NTP gating and no replay of events missed during reboot or clock correction
+- Atomic batch admission through the existing relay queue, with retries only within the scheduled minute
+- Single-bordered time editor with Korean 오전/오후 and English AM/PM
+- Compressed web assets and on-demand settings JSON preserve existing heap/stack reservations
+- Passed 470 scheduler ARM checks plus UI, settings, relay, SSE and memory checks; successful operation confirmed in user device testing
 
 ### 2.0.10 — 2026-10-11
 
