@@ -134,8 +134,6 @@ This repository distributes firmware and documentation, not the complete buildab
 
 Recurrence options are daily, selected weekdays, monthly date (1–31), and the last day of each month. Missing dates are skipped; month-end and leap years are calculated automatically. Targets are channels 1–4 or all channels. Later rows win conflicting actions for the same channel at the same time.
 
-Hour and minute inputs share a single border. The period selector displays 오전/오후 in Korean and AM/PM in English, independent of the browser language.
-
 Execution requires NTP synchronization. Initial synchronization, reboot and schedule edits anchor the current minute; execution starts with subsequent minutes. Missed events are not replayed. A busy relay queue is retried only within the scheduled minute. Batches require room for all scheduled channel commands; they are not partially admitted.
 
 Existing settings migrate with empty schedules. Saving settings after downgrading to older firmware may clear schedules. Existing protection and manual controls remain in use.
