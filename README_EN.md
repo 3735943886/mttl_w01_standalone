@@ -9,11 +9,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ## Download
 
-**2.0.11 / build `325060a093eb8ee2` · October 14, 2026**
+**2.0.12 / build `a01fc642c17fb9bf` · October 14, 2026**
 
-[Download comMTTL-W01_2.0.11.fwr](firmware/comMTTL-W01_2.0.11.fwr)
+[Download comMTTL-W01_2.0.12.fwr](firmware/comMTTL-W01_2.0.12.fwr)
 
-SHA-256: `085ed5ecdd00abd31ff95c24a7bf60c90a5add05d9c7aa4eec7cc5174596c957`
+SHA-256: `2e92000f16263de1337ebe2893a81df1cbfa5084cc67627f1e1147716e0648c9`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -52,7 +52,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.11.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.0.12.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -167,6 +167,14 @@ Current metering counters become the new baseline, so only subsequent increments
 A held button triggers only once. Setup entry waits for valid channel counters and successful persistence, so sensor/storage errors may delay entry. A failed save preserves previous totals.
 
 ## Version History
+
+### 2.0.12 — 2026-10-14
+
+- Fixed unresponsive Wi-Fi scan requests and device restarts occurring in 2.0.11
+- Allocate the scan response buffer on the heap only for the request, reducing the handler's local stack frame from 3,168 to 864 bytes
+- Return an HTTP error on allocation failure and free the buffer after both successful responses and transmission failures
+- Passed tests for sixteen maximum-length SSIDs, allocation/write failures and existing scheduler, settings, relay, SSE and protection paths
+- Preserve existing heap/stack reservations and the scan cache; normal Wi-Fi scanning confirmed in user device testing
 
 ### 2.0.11 — 2026-10-14
 
