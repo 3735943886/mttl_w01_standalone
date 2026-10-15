@@ -23,7 +23,7 @@ class App:
         main=ttk.Frame(root,padding=22);main.pack(fill='both',expand=True);main.columnconfigure(0,weight=1);main.rowconfigure(7,weight=1)
         ttk.Label(main,text='MTTL-W01 Firmware Builder',style='Title.TLabel').grid(row=0,column=0,sticky='w')
         self.language_button=ttk.Button(main,text='English',command=self.switch_language);self.language_button.grid(row=0,column=0,sticky='e')
-        ttk.Label(main,text='Windows x64 · 로컬 테스트용 · 기기 업로드 없음').grid(row=1,column=0,sticky='w',pady=(4,18))
+        ttk.Label(main,text='Windows x64').grid(row=1,column=0,sticky='w',pady=(4,18))
         ttk.Label(main,text='소스 폴더 (mttl-source.json이 있는 폴더)').grid(row=2,column=0,sticky='w')
         picker=ttk.Frame(main);picker.grid(row=3,column=0,sticky='ew',pady=(6,10));picker.columnconfigure(0,weight=1)
         self.entry=ttk.Entry(picker,textvariable=self.source);self.entry.grid(row=0,column=0,sticky='ew',ipady=7)

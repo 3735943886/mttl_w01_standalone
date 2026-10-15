@@ -1,7 +1,6 @@
 """Builder-owned messages; compiler/SDK diagnostics remain upstream text."""
 MESSAGES={
 '소스를 선택하고 환경을 준비하세요.':'Select source and prepare the environment.',
-'Windows x64 · 로컬 테스트용 · 기기 업로드 없음':'Windows x64 · Local test · No device upload',
 '소스 폴더 (mttl-source.json이 있는 폴더)':'Source folder (contains mttl-source.json)',
 '폴더 선택':'Browse folder','소스 ZIP 가져오기':'Import source ZIP',
 '공식 배포처에서 필수 도구를 다운로드하며 제3자 라이선스가 적용됨을 확인했습니다.':'I acknowledge upstream downloads and third-party license terms.',
