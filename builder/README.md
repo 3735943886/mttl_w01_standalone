@@ -6,14 +6,14 @@
 
 ![MTTL-W01 Firmware Builder 1.0.0](../docs/builder-1.0.0.png)
 
-Windows x64용 포터블 펌웨어 빌드 도구입니다. [Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0)에서 빌드 도구 ZIP과 펌웨어 2.0.12 소스 ZIP을 받으세요.
+Windows x64용 포터블 펌웨어 빌드 도구입니다. [빌드 도구 ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0)과 [펌웨어 2.0.13 소스 ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.13)을 받으세요.
 
 ## 사용 방법
 
 1. 빌드 도구 ZIP 전체를 `C:\Temp\MTTL-Builder` 같은 짧은 영문 경로에 압축 해제합니다. EXE와 `_internal` 폴더를 함께 유지하십시오. 관리자 권한은 필요 없습니다.
 2. `MTTL-Builder.exe`를 실행합니다. 우상단 **English / 한국어** 버튼으로 언어를 선택합니다. 언어를 변경한 후에는 프로그램을 닫고 다시 실행해야 적용됩니다. 선택은 프로그램 폴더의 `preferences.json`에 저장됩니다. 컴파일러·SDK 로그와 Windows 파일 선택창의 언어는 별개입니다.
 3. `라이선스 안내`를 읽고 확인을 체크한 다음 `1. 환경 준비 / 확인`을 누릅니다. 최초 약 197MiB를 공식 배포처에서 다운로드하므로 인터넷이 필요합니다. 실패하면 로그를 확인하고 재시도하십시오.
-4. `MTTL-W01-Source-2.0.12.zip`을 `소스 ZIP 가져오기`로 불러오거나, 압축 해제한 소스에서 `mttl-source.json`이 있는 폴더를 선택합니다.
+4. `MTTL-W01-Source-2.0.13.zip`을 `소스 ZIP 가져오기`로 불러오거나, 압축 해제한 소스에서 `mttl-source.json`이 있는 폴더를 선택합니다.
 5. `2. 펌웨어 빌드`를 누릅니다. 성공한 FWR만 `output/<작업시각>/`에 저장됩니다. 실패·취소한 결과는 output에 발행하지 않습니다. 생성한 FWR는 기기의 웹 펌웨어 페이지에서 직접 올립니다.
 6. 수정하려면 `standalone/ui/`의 HTML·JavaScript·번역 또는 `standalone/firmware/`의 C/C++ 코드를 편집한 뒤 해당 소스 폴더를 선택하고 다시 빌드합니다. 별도 작업 복사본을 사용하므로 선택한 소스를 직접 변경하지 않습니다. 빌드 ID는 매번 새로 생성되어 해시도 달라집니다.
 

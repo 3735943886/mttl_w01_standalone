@@ -36,11 +36,13 @@ static uint8_t config_occupied,occupied;
 static uint8_t energy_barrier_state; /* 0 idle, 1 requested, 2 saved, 3 failed */
 /* Four waiting commands, in addition to the active relay operation. */
 static uint8_t control_pending,control_head;
-static struct {uint32_t at;uint8_t channel,on;} control_queue[4];
+static struct {uint32_t at;uint8_t channel,on,mask;} control_queue[4];
 static SemaphoreHandle_t relay_wake;
 static mttl_control relay_control;
 static mttl_hardware_port relay_port;
 static volatile uint8_t relay_busy,storage_busy;
+static uint8_t indicator_busy,lock_flash_requested,lock_flash_mask,lock_flash_edges;
+static uint32_t lock_flash_at;
 static uint32_t relay_save_attempt_at;
 static uint8_t relay_save_retry;
 /* Arduino task owns HW feed; each monitored owner updates its own progress.
@@ -74,27 +76,41 @@ static uint8_t setup_led_edges,setup_led_on;
 static uint32_t relay_requested_at,relay_wait_ms,relay_run_ms,relay_sequence;
 static int storage_begin(void){int ok=0;
 #if MTTL_LEGACY_RELAY_TIMING
- taskENTER_CRITICAL();if(!relay_busy&&!storage_busy){storage_busy=1;ok=1;}
+ taskENTER_CRITICAL();if(!relay_busy&&!storage_busy&&!indicator_busy){storage_busy=1;ok=1;}
 #else
- uint32_t now=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;taskENTER_CRITICAL();if(!relay_busy&&!control_pending&&!storage_busy&&(!relay_sequence||(uint32_t)(now-(relay_requested_at+relay_wait_ms+relay_run_ms))>=1500u)){storage_busy=1;ok=1;}
+ uint32_t now=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;taskENTER_CRITICAL();if(!relay_busy&&!control_pending&&!storage_busy&&!indicator_busy&&(!relay_sequence||(uint32_t)(now-(relay_requested_at+relay_wait_ms+relay_run_ms))>=1500u)){storage_busy=1;ok=1;}
 #endif
  taskEXIT_CRITICAL();return ok;}
 static void storage_end(void){taskENTER_CRITICAL();storage_busy=0;taskEXIT_CRITICAL();}
 /* Debounce relay-state persistence from the LAST completed command, not
  * from the first change. A queued/active command cancels the quiet window. */
 static __attribute__((noinline)) int relay_save_ready(uint32_t now){int ready;taskENTER_CRITICAL();ready=!relay_busy&&!control_pending&&(uint32_t)(now-(relay_requested_at+relay_wait_ms+relay_run_ms))>=10000u;taskEXIT_CRITICAL();return ready;}
+/* Same bus owner as relay pulses. No sleeps or coil bits in feedback frames;
+ * remote/scheduled/protection commands always drain before the next edge. */
+static __attribute__((noinline)) void lock_flash_tick(uint32_t now){unsigned mask,lit;int ok;
+ taskENTER_CRITICAL();
+ if(storage_busy||energy_barrier_state||occupied||control_pending||relay_port.active||relay_fault||!relay_port.verified){taskEXIT_CRITICAL();return;}
+ if(lock_flash_requested){lock_flash_mask|=lock_flash_requested;lock_flash_requested=0;lock_flash_edges=6;lock_flash_at=now-120u;}
+ if(!lock_flash_mask||(uint32_t)(now-lock_flash_at)<120u){taskEXIT_CRITICAL();return;}
+ lock_flash_at=now;mask=lock_flash_edges?lock_flash_mask:0;lit=!(lock_flash_edges&1);if(lock_flash_edges)--lock_flash_edges;else lock_flash_mask=0;
+ indicator_busy=1;taskEXIT_CRITICAL();
+ ok=mttl_hardware_lock_flash(&relay_port,(uint8_t)mask,lit);
+ taskENTER_CRITICAL();indicator_busy=0;if(!ok){relay_fault=1;lock_flash_mask=lock_flash_requested=0;}taskEXIT_CRITICAL();
+}
 static void relay_task(void *unused){mttl_output out={&relay_port,mttl_hardware_begin,mttl_hardware_end};(void)unused;
- for(;;){unsigned ch,on;uint32_t start;
-  xSemaphoreTake(relay_wake,portMAX_DELAY);
+ for(;;){unsigned ch,on,mask;uint32_t start;
+  xSemaphoreTake(relay_wake,(lock_flash_mask||lock_flash_requested)?(120/portTICK_RATE_MS+1):portMAX_DELAY);
   for(;;){
   taskENTER_CRITICAL();
   if(!control_pending){taskEXIT_CRITICAL();break;}
-  ch=control_queue[control_head].channel;on=control_queue[control_head].on;
+  ch=control_queue[control_head].channel;on=control_queue[control_head].on;mask=control_queue[control_head].mask;
   relay_requested_at=control_queue[control_head].at;control_head=(control_head+1)&3;--control_pending;
   taskEXIT_CRITICAL();
   while(storage_busy)vTaskDelay(1); /* Never energize coils across NOR operations. */
   start=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;
-  if(mttl_request(&relay_control,ch,on))do{
+  if(ch==4){unsigned i;for(i=0;i<4;i++)if(mask&(1u<<i))mttl_request(&relay_control,i,on);}
+  else mttl_request(&relay_control,ch,on);
+  if(relay_control.count)do{
    mttl_control_tick(&relay_control,&out,(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS);
    watchdog_relay_at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;
    taskENTER_CRITICAL();relay_known=relay_control.known_mask;relay_on=relay_control.on_mask;relay_fault=relay_control.fault;taskEXIT_CRITICAL();
@@ -108,6 +124,7 @@ static void relay_task(void *unused){mttl_output out={&relay_port,mttl_hardware_
   if(relay_fault)control_pending=0;
   relay_busy=control_pending!=0;taskEXIT_CRITICAL();
   }
+  lock_flash_tick((uint32_t)xTaskGetTickCount()*portTICK_RATE_MS);
  }
 }
 void mttl_sdk_control_timing(uint32_t out[4]){taskENTER_CRITICAL();out[0]=relay_sequence;out[1]=relay_wait_ms;out[2]=relay_run_ms;out[3]=relay_busy;taskEXIT_CRITICAL();}
@@ -120,7 +137,10 @@ int mttl_sdk_energy_barrier(void){unsigned i;int result=0;
 void mttl_sdk_energy_release(void){taskENTER_CRITICAL();energy_barrier_state=0;taskEXIT_CRITICAL();}
 static mttl_sdk_mqtt_socket mqtt_socket;
 static mttl_mqtt_io mqtt_io;
-static char device_json[1536],identity[13];
+/* CPU-only serialized cache. Contents are never read before device_size is
+ * published; keep it out of scarce main RAM and the RTOS heap. */
+static char device_json[1536] __attribute__((section(".mttl.cache")));
+static char identity[13];
 static size_t device_size;
 static mttl_settings pending_config;
 static uint8_t config_ready;
@@ -130,18 +150,19 @@ static mttl_worker_status published;
 static uint32_t rssi_polled_at;
 static int cached_rssi;
 static uint8_t cached_rssi_valid;
-static int control_enqueue(unsigned channel,unsigned on,int local){int ok=0;if(channel>4||on>1)return 0;taskENTER_CRITICAL();if(worker_started&&relay_wake&&(local||published.state==MTTL_NET_ONLINE)&&!energy_barrier_state&&!occupied&&!config_occupied&&control_pending<4&&device.hardware.verified&&!relay_fault){unsigned tail=(control_head+control_pending)&3;control_queue[tail].channel=channel;control_queue[tail].on=on;control_queue[tail].at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;++control_pending;
+static int control_enqueue(unsigned channel,unsigned on,int local){int ok=0;unsigned mask;if(channel>4||on>1)return 0;taskENTER_CRITICAL();mask=local==2?(15u&~device.settings.button_lock):15u;if(!mask||(channel<4&&!(mask&(1u<<channel)))){taskEXIT_CRITICAL();return 0;}if(worker_started&&relay_wake&&(local||published.state==MTTL_NET_ONLINE)&&!energy_barrier_state&&!occupied&&!config_occupied&&control_pending<4&&device.hardware.verified&&!relay_fault){unsigned tail=(control_head+control_pending)&3;control_queue[tail].channel=channel;control_queue[tail].on=on;control_queue[tail].mask=mask;control_queue[tail].at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;++control_pending;
 /* Publish the new progress timestamp atomically with busy, before waking
  * the relay task or allowing watchdog evaluation of this command. */
-watchdog_relay_at=control_queue[tail].at;relay_busy=1;if(channel==4)relay_desired=on?15:0;else if(on)relay_desired|=1u<<channel;else relay_desired&=~(1u<<channel);ok=1;}taskEXIT_CRITICAL();if(ok)xSemaphoreGive(relay_wake);return ok;}
+watchdog_relay_at=control_queue[tail].at;relay_busy=1;if(channel==4)relay_desired=(relay_desired&~mask)|(on?mask:0);else if(on)relay_desired|=1u<<channel;else relay_desired&=~(1u<<channel);ok=1;}taskEXIT_CRITICAL();if(ok)xSemaphoreGive(relay_wake);return ok;}
 int mttl_sdk_control_request(unsigned channel,unsigned on){return control_enqueue(channel,on,0);}
 /* Replace waiting ON commands with a priority ALL OFF; an active coil pulse
  * still finishes/release safely. No persistent lock or automatic re-enable. */
-static void protection_off(void){taskENTER_CRITICAL();if(relay_wake&&device.hardware.verified&&!relay_fault){control_head=0;control_pending=1;control_queue[0].channel=4;control_queue[0].on=0;control_queue[0].at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;watchdog_relay_at=control_queue[0].at;relay_busy=1;relay_desired=0;}taskEXIT_CRITICAL();if(relay_wake)xSemaphoreGive(relay_wake);}
+static void protection_off(void){taskENTER_CRITICAL();if(relay_wake&&device.hardware.verified&&!relay_fault){control_head=0;control_pending=1;control_queue[0].channel=4;control_queue[0].on=0;control_queue[0].mask=15;control_queue[0].at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;watchdog_relay_at=control_queue[0].at;relay_busy=1;relay_desired=0;}taskEXIT_CRITICAL();if(relay_wake)xSemaphoreGive(relay_wake);}
 void mttl_sdk_button_event(unsigned index,int event){unsigned on;if(index>4||!event)return;
  if(index==0&&event==2){taskENTER_CRITICAL();if(!energy_barrier_state){provision_requested=1;setup_led_edges=6;setup_led_at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS-200u;}taskEXIT_CRITICAL();return;}
- taskENTER_CRITICAL();on=index?!(relay_desired&(1u<<(index-1))):!relay_desired;taskEXIT_CRITICAL();
- (void)control_enqueue(index?index-1:4,on,1);
+ taskENTER_CRITICAL();on=index?!(relay_desired&(1u<<(index-1))):!(relay_desired&(15u&~device.settings.button_lock));
+ lock_flash_requested|=device.settings.button_lock&(index?(1u<<(index-1)):15u);
+ (void)control_enqueue(index?index-1:4,on,2);taskEXIT_CRITICAL();if(lock_flash_requested&&relay_wake)xSemaphoreGive(relay_wake);
 }
 /* Called from the existing Arduino loop, independently of network/flash work. */
 void mttl_sdk_buttons_poll(void){unsigned i;uint32_t now;if(!buttons_ready)return;now=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;

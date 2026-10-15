@@ -6,14 +6,14 @@ Project-authored code uses the [MIT License](../LICENSE). [Third-party code and 
 
 ![MTTL-W01 Firmware Builder 1.0.0](../docs/builder-1.0.0.png)
 
-A portable firmware builder for Windows x64. Download the Builder ZIP and firmware 2.0.12 Source ZIP from the [Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0).
+A portable firmware builder for Windows x64. Download the [Builder ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) and [firmware 2.0.13 Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.13).
 
 ## Usage
 
 1. Extract the entire Builder ZIP into a short ASCII path such as `C:\Temp\MTTL-Builder`. Keep the EXE and `_internal` folder together. Administrator rights are not required.
 2. Run `MTTL-Builder.exe`. Select the language with the **English / 한국어** button at the top right. After changing the language, close and restart the program for the change to take effect. Your selection is saved in `preferences.json` in the program folder. Compiler/SDK logs and Windows file dialogs use their own languages.
 3. Read `License notices`, check acceptance, and select `1. Prepare / check tools`. The first preparation downloads approximately 197MiB from upstream distribution sites and requires internet access. If it fails, check the logs and retry.
-4. Import `MTTL-W01-Source-2.0.12.zip` with `Import source ZIP`, or extract it and select the source directory containing `mttl-source.json`.
+4. Import `MTTL-W01-Source-2.0.13.zip` with `Import source ZIP`, or extract it and select the source directory containing `mttl-source.json`.
 5. Select `2. Build firmware`. Only successful FWRs are saved under `output/<timestamp>/`. Failed or cancelled results are not published to output. Upload the generated FWR manually through the device firmware web page.
 6. To customize, edit HTML, JavaScript or translations in `standalone/ui/`, or C/C++ in `standalone/firmware/`. Select the edited source directory and rebuild. A separate working copy is used, leaving your selected source unchanged. Each build receives a fresh build ID, so hashes also change.
 

@@ -20,7 +20,7 @@ unsigned mttl_settings_mock_tests(void){
     loaded[0]=123;if(mttl_settings_pack(&s,loaded,1)||loaded[0]!=123)++failed;
     if(mttl_settings_unpack(body,n+1,&out))++failed;
     out.port=99;if(mttl_settings_unpack(body,n-1,&out)||out.port!=99)++failed;
-    body[0]=2;if(mttl_settings_unpack(body,n,&out))++failed;body[0]=5;
+    body[0]=2;if(mttl_settings_unpack(body,n,&out))++failed;body[0]=6;
     s.device[0]=(char)0xc0;s.device[1]=(char)0x80;s.device[2]=0;if(mttl_settings_valid(&s))++failed;
     mttl_settings_default(&s);s.device[0]=(char)0xea;s.device[1]=(char)0xb0;s.device[2]=(char)0x80;s.device[3]=0;
     if(!mttl_settings_valid(&s))++failed;
@@ -81,7 +81,21 @@ unsigned mttl_settings_mock_tests(void){
     for(i=0;i<64;i++){out.device[i]='a';out.channel[0][i]=out.channel[1][i]=out.channel[2][i]=out.channel[3][i]='a';out.wifi_password[i]='a';out.mqtt_user[i]=out.mqtt_password[i]=out.topic[i]='a';}
     for(i=0;i<32;i++)out.ssid[i]='a';for(i=0;i<253;i++)out.broker[i]='a';
     size=mttl_settings_storage_pack(&out,loaded,sizeof(loaded));
-    if(size!=972||!mttl_settings_storage_unpack(loaded,size,&out))++failed;
+    if(size!=973||!mttl_settings_storage_unpack(loaded,size,&out))++failed;
+    /* Every lock combination survives the atomic storage record; existing
+     * relay, energy and schedule sidecars remain independently validated. */
+    for(i=0;i<16;i++){
+        s.button_lock=(uint8_t)i;
+        n=mttl_settings_storage_pack(&s,body,sizeof(body));
+        if(!n||!mttl_settings_encode(memory[0],body,n,50+(uint32_t)i))++failed;
+        memory[0][MTTL_SETTINGS_SLOT-1]=0;
+        if(!mttl_settings_extract(memory[0],loaded,sizeof(loaded),&size)||!mttl_settings_storage_unpack(loaded,size,&out)||out.button_lock!=i||out.energy_wh[3]!=s.energy_wh[3])++failed;
+        memory[0][1716]^=1;
+        {uint32_t seq;size_t bytes;if(mttl_settings_validate(memory[0],&seq,&bytes))++failed;}
+    }
+    /* Restore valid records before testing malformed-schema handling. */
+    for(i=0;i<sizeof(memory);i++)((uint8_t *)memory)[i]=255;
+    cut=-1;if(mttl_config_save(&io,&config_workspace,&s)!=1)++failed;
     /* Recreate the malformed unknown-schema record test input. */
     n=mttl_settings_pack(&s,body,sizeof(body));
     body[0]=2;

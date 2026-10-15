@@ -2,6 +2,12 @@
 #include <string.h>
 static const uint8_t led_pair[][3]={{0,4,5},{0,2,3},{0,0,1},{1,0,1}};
 static void main_indicator(uint8_t out[4]){out[1]&=0xf3;if((out[0]&0x15)||(out[1]&1))out[1]|=4;else if((out[0]&0x2a)==0x2a&&(out[1]&2))out[1]|=8;}
+int mttl_hardware_lock_flash(mttl_hardware_port *p,uint8_t mask,int lit){
+ uint8_t out[4];unsigned i;if(!p||!p->verified||!p->write||p->active||mask>15)return 0;
+ memcpy(out,p->shadow,4);out[1]&=0xcf;out[2]&=0xc0;
+ for(i=0;i<4;i++)if(mask&(1u<<i)){const uint8_t *pair=led_pair[i];uint8_t bits=(1u<<pair[1])|(1u<<pair[2]);out[pair[0]]=(out[pair[0]]&~bits)|(lit?bits:0);}
+ return p->write(p->context,out,4);
+}
 int mttl_hardware_indicators(mttl_hardware_port *p,uint8_t known,uint8_t on){uint8_t out[4];unsigned i;const uint8_t *pair;
  if(!p||!p->verified||!p->write||p->active)return 0;memcpy(out,p->shadow,4);out[1]&=0xcf;out[2]&=0xc0;
  for(i=0;i<4;i++){pair=led_pair[i];out[pair[0]]&=~((1u<<pair[1])|(1u<<pair[2]));if(known&(1u<<i))out[pair[0]]|=1u<<pair[(on&(1u<<i))?1:2];}

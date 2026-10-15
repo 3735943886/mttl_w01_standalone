@@ -349,8 +349,11 @@ uint32_t mttl_selftest(void) {
      check(b.protection.temperature_c==65&&b.protection.current_ma==2300&&b.protection.power_w==750&&b.protection.enabled==5);
      check(b.relay_known==15&&b.relay_on==2&&b.energy_wh[0]==1234);
      n=mttl_settings_pack(&a,bytes,sizeof(bytes));bytes[0]=1;
-     check(mttl_settings_unpack(bytes,n-57,&b)&&b.protection.enabled==7&&b.protection.temperature_c==90&&b.protection.current_ma==16000&&b.protection.power_w==3000);
-     bytes[0]=5;bytes[n-57]=8;check(!mttl_settings_unpack(bytes,n,&b));
+     check(mttl_settings_unpack(bytes,n-58,&b)&&b.protection.enabled==7&&b.protection.temperature_c==90&&b.protection.current_ma==16000&&b.protection.power_w==3000&&!b.button_lock);
+     bytes[0]=6;bytes[n-58]=8;check(!mttl_settings_unpack(bytes,n,&b));
+     a.button_lock=5;n=mttl_settings_pack(&a,bytes,sizeof(bytes));check(n&&mttl_settings_unpack(bytes,n,&b)&&b.button_lock==5);
+     bytes[n-1]=16;check(!mttl_settings_unpack(bytes,n,&b));
+     bytes[n-1]=5;bytes[0]=5;check(mttl_settings_unpack(bytes,n-1,&b)&&b.button_lock==0);
     }
     cleanup_test();
     mttl_integration_test();

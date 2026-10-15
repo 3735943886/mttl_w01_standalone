@@ -12,6 +12,9 @@ int mttl_hardware_begin(void *,uint8_t channel,uint8_t on);
 int mttl_hardware_end(void *,uint8_t channel);
 /* LED-only frame: all coil bits cleared; unknown channels remain dark. */
 int mttl_hardware_indicators(mttl_hardware_port *,uint8_t known,uint8_t on);
+/* Temporary LED overlay only; never updates logical shadow or coil bits.
+ * mask=0 restores current shadow, including the unchanged main LED. */
+int mttl_hardware_lock_flash(mttl_hardware_port *,uint8_t mask,int lit);
 typedef struct { mttl_sample power[4],meter[4],current[4],temperature[4],voltage,total_power,total_meter,total_current; } mttl_hardware_samples;
 /* Invalid register read never turns into a fabricated zero sample. */
 void mttl_hardware_sample(mttl_sample *,int read_ok,int32_t value,uint32_t now);

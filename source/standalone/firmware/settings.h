@@ -9,6 +9,7 @@ typedef struct {
     char broker[254],mqtt_user[65],mqtt_password[65],topic[65];
     uint16_t port;
     uint8_t language,mqtt_enabled;
+    uint8_t button_lock; /* Bit 0..3: inhibit physical channel buttons only. */
     /* Device-owned checkpoint; excluded from web configuration encoding. */
     uint32_t energy_raw[4],energy_wh[4];
     uint8_t energy_valid;

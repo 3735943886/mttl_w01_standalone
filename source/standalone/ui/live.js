@@ -9,6 +9,23 @@
   const pendingChannels=new Set();let controlTail=Promise.resolve();
   const optimistic=new Map();
   const channelNodes=[];
+  const lockPending=new Set();let lockTail=Promise.resolve();
+  async function toggleLock(i){
+    if(lockPending.has(i)||!configuration)return;
+    lockPending.add(i);render();
+    const previous=lockTail;let release;lockTail=new Promise(resolve=>{release=resolve;});await previous;
+    try{
+      const fresh=await request('/api/config');
+      const desired=(fresh.button_lock||0)^(1<<i);
+      await storeConfiguration({...fresh,button_lock:desired});
+      const actual=await request('/api/config');
+      configuration=actual;
+      if(actual.button_lock!==desired)throw Error('Lock save not confirmed');
+      deviceSnapshot=await request('/api/device');applyRelay();
+      logEvent('물리 버튼 잠금 설정을 저장했습니다.','Physical button lock saved.');
+    }catch(_){configuration=null;logEvent('잠금 설정 저장 실패 · 다시 확인하세요.','Lock save failed; check the device state.');}
+    finally{lockPending.delete(i);release();render();}
+  }
   // Bounded browser-session diagnostics, never configuration or credentials.
   const logRows=[];let lastObserved=null;
   function renderLog(){const box=el('log');box.textContent=logRows.length?logRows.map(row=>'['+row.at+'] '+(language==='en'?row.en:row.ko)).join('\n'):(language==='en'?'Browser-session events only; not stored in device.':'브라우저 세션 로그 · 기기에 저장되지 않습니다.');if(el('autoscroll').checked)box.scrollTop=box.scrollHeight;}
@@ -42,12 +59,12 @@
   function settingsBody(c,password=''){
     const port=Number(c.port);if(!Number.isInteger(port)||port<1||port>65535)throw Error('Port');
     const fields=[c.device,...c.channels,'','',c.broker,c.user,password,c.topic];if(fields.length!==11)throw Error('Channels');
-    const bytes=[5,c.language,c.enabled?1:0,port&255,port>>>8];const limits=[64,64,64,64,64,32,64,253,64,64,64];
+    const bytes=[6,c.language,c.enabled?1:0,port&255,port>>>8];const limits=[64,64,64,64,64,32,64,253,64,64,64];
     fields.forEach((field,i)=>{const data=new TextEncoder().encode(field||'');if(data.length>limits[i])throw Error('Length');bytes.push(data.length,...data);});
     const p=c.protection||{enabled:7,temperature:90,current:16000,power:3000};
     if(!Number.isInteger(p.enabled)||p.enabled<0||p.enabled>7||!Number.isInteger(p.temperature)||p.temperature<50||p.temperature>90||!Number.isInteger(p.current)||p.current<1000||p.current>16000||!Number.isInteger(p.power)||p.power<100||p.power>3000)throw Error('Protection');
     bytes.push(p.enabled,p.temperature&255,p.temperature>>>8,p.current&255,p.current>>>8,p.power&255,p.power>>>8);
-    const hex=c.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults());MttlSchedule.decode(hex);bytes.push(...hex.match(/../g).map(x=>parseInt(x,16)));return Uint8Array.from(bytes);
+    const hex=c.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults());MttlSchedule.decode(hex);bytes.push(...hex.match(/../g).map(x=>parseInt(x,16)));const locks=c.button_lock||0;if(!Number.isInteger(locks)||locks<0||locks>15)throw Error('Lock');bytes.push(locks);return Uint8Array.from(bytes);
   }
   async function storeConfiguration(c,password='',keep=true){if(![2,5].includes(snapshot?.state))throw Error('Not ready');const body=settingsBody(c,password);try{await request('/api/config',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-MTTL-Keep-Password':keep?'1':'0'},body});for(let n=0;n<12;n++){await new Promise(resolve=>setTimeout(resolve,250));const saved=await request('/api/config');if(saved.persistent&&saved.device===c.device&&JSON.stringify(saved.channels)===JSON.stringify(c.channels)&&saved.language===c.language&&saved.broker===c.broker&&saved.port===c.port&&saved.user===c.user&&saved.enabled===c.enabled&&(!c.schedule_hex||saved.schedule_hex===c.schedule_hex)&&(!c.protection||['enabled','temperature','current','power'].every(k=>saved.protection?.[k]===c.protection[k]))){configuration=saved;deviceSnapshot=null;return true;}}throw Error('Flash save not confirmed');}finally{body.fill(0);}}
   function loadProtection(){const p=configuration?.protection||{enabled:7,temperature:90,current:16000,power:3000};['temperature','current','power'].forEach((k,i)=>{el('protect-'+k).value=String(k==='current'?p[k]/1000:p[k]);el('protect-'+k+'-enabled').checked=!!(p.enabled&(1<<i));});protectionValues();}
@@ -64,7 +81,6 @@
     el('protection-apply').disabled=!configuration||![2,5].includes(snapshot?.state)||protectionSaving;
     {const p=deviceSnapshot?.protection,names=language==='en'?['Temperature','Current','Power']:['온도','전류','전력'];const items=bits=>names.filter((_,i)=>bits&(1<<i)).join(', ');el('protection-state').textContent=p?((language==='en'?'Last trip: ':'최근 차단: ')+(p.reason?items(p.reason):(language==='en'?'None':'없음'))+' · '+(language==='en'?'Sensor errors: ':'센서 오류: ')+(p.error?items(p.error):(language==='en'?'None':'없음'))):t('apiUnavailable');}
     ['all-on','all-off'].forEach(id=>el(id).disabled=controlBusy||!deviceSnapshot?.hardware_ready||!snapshot?.hardware_ready||snapshot?.state!==5);
-    document.querySelector('.note').textContent=deviceSnapshot?.hardware_ready?(language==='en'?'Experimental relay and sensor firmware. Switch states reflect commands, not measured contacts.':'릴레이·계측 시험용 펌웨어입니다. 스위치 상태는 명령 결과이며 실제 접점 피드백은 아닙니다.'):t('liveNote');
     el('device-name').textContent=name(-1);
     for(let i=0;i<4;i++){
       if(!channelNodes[i]){
@@ -73,14 +89,16 @@
       const title=document.createElement('h2');title.textContent=name(i);
       const pencil=document.createElement('button');pencil.className='edit-name';pencil.textContent='✎';pencil.setAttribute('aria-label',t('editChannel',{number:i+1}));pencil.onclick=()=>edit(i);header.append(pencil,title);card.append(header);
       const sensors=[];
-      for(const [label,unit,field,scale] of [['power','W','power_mw',1000],['meter','kWh','meter_wh',1000],['current','A','current_ma',1000],['temperature','°C','temp_dc',10]]){
+      for(const [label,unit,field,scale] of [['power','W','power_mw',1000],['channelMeter','kWh','meter_wh',1000],['current','A','current_ma',1000],['temperature','°C','temp_dc',10]]){
         const row=document.createElement('div');row.className='sensor';const text=document.createElement('span'),value=document.createElement('b');text.textContent=t(label);value.textContent=reading(deviceSnapshot?.channels?.[i]?.[field],scale,unit);row.append(text,value);card.append(row);
         sensors.push({text,value,label,unit,field,scale});
       }
       const button=document.createElement('button');button.className='switch';button.onclick=()=>{const on=optimistic.has(i)?optimistic.get(i):deviceSnapshot?.channels?.[i]?.on;return control(i,on===true?0:1);};card.append(button);el('channels').append(card);
-      channelNodes[i]={title,pencil,button,sensors};
+      const lock=document.createElement('button');lock.className='edit-name channel-lock';lock.onclick=()=>toggleLock(i);header.append(lock);
+      channelNodes[i]={title,pencil,button,sensors,lock};
       }
       const node=channelNodes[i];node.title.textContent=name(i);node.pencil.setAttribute('aria-label',t('editChannel',{number:i+1}));
+      const locked=!!((configuration?.button_lock||0)&(1<<i));node.lock.textContent=locked?'🔒':'🔓';node.lock.title=language==='en'?(locked?'Locked: physical button disabled':'Unlocked: physical button enabled'):(locked?'잠김: 물리 버튼 비활성화':'잠금 해제: 물리 버튼 사용');node.lock.setAttribute('aria-label',node.lock.title);node.lock.setAttribute('aria-pressed',String(locked));node.lock.disabled=lockPending.has(i)||!configuration||![2,5].includes(snapshot?.state);
       for(const sensor of node.sensors){sensor.text.textContent=t(sensor.label);const value=reading(deviceSnapshot?.channels?.[i]?.[sensor.field],sensor.scale,sensor.unit);if(sensor.value.textContent!==value)sensor.value.textContent=value;}
       node.button.disabled=pendingChannels.has(i)||pendingChannels.has(4)||!deviceSnapshot?.hardware_ready||!snapshot?.hardware_ready||snapshot?.state!==5;
       const on=optimistic.has(i)?optimistic.get(i):deviceSnapshot?.channels?.[i]?.on,value=on===true?'ON':on===false?'OFF':(language==='en'?'Turn on':'켜기');if(node.button.textContent!==value)node.button.textContent=value;
@@ -95,7 +113,7 @@
     const ip=snapshot?.ip;el('ip').textContent=Number.isInteger(ip)&&ip>0?[ip>>>24,(ip>>>16)&255,(ip>>>8)&255,ip&255].join('.'):'—';
     el('connected-ssid').textContent=snapshot?hexText(snapshot.ssid_hex)||'—':'—';
     el('rssi').textContent=(snapshot&&Number.isInteger(snapshot.rssi)?snapshot.rssi:'—')+' dBm';
-    el('uptime').textContent=snapshot?t('seconds',{count:Math.floor(snapshot.uptime_ms/1000)}):'—';
+    {const s=Math.floor((snapshot?.uptime_ms||0)/1000);el('uptime').textContent=snapshot?t('duration',{days:Math.floor(s/86400),hours:Math.floor(s/3600)%24,minutes:Math.floor(s/60)%60,seconds:s%60}):'—';}
     el('wifi-status').textContent=t(wifiMessage);
     el('mqtt-status').textContent=t('netState'+([0,1,3,3,3,5,6][deviceSnapshot?.mqtt_state]??0));
   }
@@ -104,9 +122,8 @@
     document.documentElement.lang=language;el('language').textContent=language==='ko'?'English':'Korean';
     document.title='MTTL-W01';for(let i=1;i<=4;i++)el('channel-name-label-'+i).textContent=t('channelName',{number:i});
     for(const [attr,target] of [['data-i18n',null],['data-i18n-placeholder','placeholder'],['data-i18n-aria','aria-label']])document.querySelectorAll('['+attr+']').forEach(n=>target?n.setAttribute(target,t(n.getAttribute(attr))):n.textContent=t(n.getAttribute(attr)));
-    document.querySelector('.badge').textContent=t('deviceIntegration');document.querySelector('.note').textContent=t('liveNote');
     el('scan').textContent=t('realScan');document.querySelector('#wifi-form button.primary').textContent=t('realConnect');
-    el('current-firmware-version').textContent='2.0.12';el('firmware-status').textContent=t('integrationPending');el('mqtt-status').textContent=t('integrationPending');el('firmware-selected').textContent=t('noSelectedFile');
+    el('current-firmware-version').textContent='2.0.13';el('firmware-status').textContent=t('integrationPending');el('mqtt-status').textContent=t('integrationPending');el('firmware-selected').textContent=t('noSelectedFile');
     document.querySelector('#mqtt-form button.primary').textContent=language==='en'?'Save to device':'기기에 저장';
     renderLog();render();
   }

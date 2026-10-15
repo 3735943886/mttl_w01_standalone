@@ -21,7 +21,7 @@ html=html.replace('<section id="device" class="active"','<section id="device"')
 html=html.replace('<section id="wifi" role=','<section id="wifi" class="active" role=')
 if options.ota_test:
     panel='''<section id="firmware" role="tabpanel" aria-labelledby="tab-firmware"><div class="panel">
-<h2 data-i18n="firmware">펌웨어</h2><div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.12</b></div>
+<h2 data-i18n="firmware">펌웨어</h2><div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.13</b></div>
 <div class="sensor"><span>Build ID</span><b id="current-build-id">—</b></div>
 <p id="ota-hint" class="muted"></p><form id="firmware-form">
 <label id="ota-file-label" for="firmware-picker"></label><input id="firmware-file" type="file" accept=".fwr" hidden>
@@ -42,9 +42,12 @@ assert count == 1, 'Missing preview-only setup simulation'
 for field in ('all-on','all-off','firmware-picker','firmware-verify'):
     html, count = re.subn(r'(<button id="'+field+r'")', r'\1 disabled', html)
     assert count == 1, 'Missing unavailable control: '+field
-html=html.replace('PC 모의 화면','기기 연결 초안')
-html=re.sub(r'<p class="note".*?</p>', '<p class="note" hidden></p>',html,flags=re.S)
-html=re.sub(r'<span class="badge".*?</span>', '<span class="badge" hidden></span>',html,flags=re.S)
+html=re.sub(r'<title>.*?</title>', '<title>MTTL-W01</title>',html,flags=re.S)
+html=re.sub(r'<p class="note".*?</p>', '',html,flags=re.S)
+html=re.sub(r'<span class="badge".*?</span>', '',html,flags=re.S)
+html=html.replace('.note,','')
+for before,after in [('data-i18n="scan"','data-i18n="realScan"'),('data-i18n="connect"','data-i18n="realConnect"'),('data-i18n="saveMock"','data-i18n="saveDevice"'),('Wi-Fi 검색 모의','Wi-Fi 검색'),('연결 모의','연결'),('저장 모의','기기에 저장')]:
+    html=html.replace(before,after)
 assert not any(sample in html for sample in ('192.0.2.10','02:00:00:00:00:01','SIMULATED_AP','1.551 kWh','220.0 V'))
 html=re.sub(r'<!--.*?-->','',html,flags=re.S)
 html=re.sub(r'>\s+<','><',html)
@@ -64,6 +67,11 @@ if options.ota_test:
 messages=json.loads(subprocess.check_output(['node','-e',
     'console.log(JSON.stringify(require(process.argv[1]).messages))',
     str(ROOT/'standalone/ui/i18n.js')],text=True,encoding='utf-8'))
+messages['ko']['saveDevice']='기기에 저장';messages['en']['saveDevice']='Save to device'
+# The broad literal-key scan also sees element IDs such as 'scan'/'online'.
+# Those are not calls to preview translations; explicitly exclude their text.
+preview_keys={'title','simulation','note','online','hold','holdHint','scan','connect','saveMock','enabled','wifiConnected','firmwareHint','updateMock','progressLabel','firmwareStep2','firmwareStep3','inspectionPassed','uploading','rechecking','rebooting','updateComplete','log_started','log_wifi','log_fwComplete','deviceIntegration','liveNote'}
+messages={lang:{key:value for key,value in values.items() if key not in preview_keys} for lang,values in messages.items()}
 used='\n'.join(data.decode('utf-8') for path,kind,data in sources if path!='/i18n.js')
 messages={lang:{key:value for key,value in values.items() if any(quote+key+quote in used for quote in ('"',"'")) or key.startswith('netState')}
           for lang,values in messages.items()}
@@ -78,6 +86,9 @@ for i,(path,kind,data) in enumerate(sources):
         data=re.sub(rb"^/\*.*?\*/\s*", b"", data, count=1, flags=re.S)
         data=re.sub(rb"^\s*//[^\r\n]*",b"",data,flags=re.M)
         data=subprocess.check_output(['node',str(ROOT/'standalone/minify_ui.cjs')],input=data)
+    if options.ota_test:
+        text=data.decode('utf-8').lower()
+        assert not any(word in text for word in ('초안','모의','흐름 확인','draft','simulat','experimental')), 'Preview text in device asset: '+path
     zipped=zopfli.gzip.compress(data,numiterations=30)
     assert gzip.decompress(zipped)==data
     lines.append('static const unsigned char mttl_asset_%d[]={%s};'%(i,','.join(map(str,zipped))))

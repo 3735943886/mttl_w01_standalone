@@ -6,7 +6,7 @@ Project-authored code is available under the [MIT License](LICENSE). Third-party
 
 ## Firmware Builder 1.0.0 and source
 
-[Download](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0): Windows x64 Builder 1.0.0 and firmware 2.0.12 Source ZIP
+[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.13 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.13)
 
 [Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
 
@@ -26,11 +26,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ### Firmware download
 
-**2.0.12 / build `a01fc642c17fb9bf` · October 14, 2026**
+**2.0.13 / build `545c2b5814c977fc` · October 16, 2026**
 
-[Download comMTTL-W01_2.0.12.fwr](firmware/comMTTL-W01_2.0.12.fwr)
+[Download comMTTL-W01_2.0.13.fwr](firmware/comMTTL-W01_2.0.13.fwr)
 
-SHA-256: `2e92000f16263de1337ebe2893a81df1cbfa5084cc67627f1e1147716e0648c9`
+SHA-256: `fc2a2098a02c1f4b91d3e0c201b4e3880ed0f3c1c8809488df6d3b7781f94ea7`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -40,6 +40,7 @@ Power cutoff was verified on the test device using a 1000W threshold and a hair 
 
 ## Features
 
+- Per-channel physical-button locks: web/HA/schedules/protection remain active; blocked button actions flash the affected LEDs three times
 - Configurable temperature, total-current and total-power protection with all-channel cutoff
 - Up to eight schedules: daily, selected weekdays, monthly date or month-end, controlling one or all channels
 
@@ -69,7 +70,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.12.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.0.13.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -183,7 +184,25 @@ Current metering counters become the new baseline, so only subsequent increments
 
 A held button triggers only once. Setup entry waits for valid channel counters and successful persistence, so sensor/storage errors may delay entry. A failed save preserves previous totals.
 
+## Physical-button locks
+
+Use 🔓/🔒 at the top right of each channel card. Locks apply only to physical buttons and do not change the current relay state. Pressing a locked channel button flashes that channel LED three times without switching its relay. The main button controls only unlocked channels and flashes all locked channel LEDs. If all channels are locked, the main button does not switch any relay.
+
+Web/HA individual and all-channel ON/OFF, schedules and protection remain functional while locked. Locks persist across reboot and OTA. The existing ten-second main-button Wi-Fi setup action and associated energy reset remain unchanged.
+
 ## Version History
+
+### 2.0.13 — October 16, 2026
+
+- Channel-card padlocks configure physical-button locks, saved in flash across reboots; older settings migrate to unlocked
+- Locked channel buttons do not switch relays; the main button controls only unlocked channels and does nothing to relays if all channels are locked
+- Web/HA individual/all controls, schedules and protection bypass physical locks; the ten-second main-button Wi-Fi setup action is unchanged
+- A blocked channel press flashes only that LED three times; a main-button press flashes every locked channel LED, then restores the current indicators
+- Only the selected web padlock is disabled during saving; changes to multiple channels are saved sequentially
+- Refreshed dashboard with system fonts, revised cards/buttons/inputs and a two-by-two mobile channel layout
+- Shorter Korean channel energy label; consistent metadata colons/spacing and uptime in days, hours, minutes and seconds
+- Removed device-side draft/simulation HTML, translations and display code; FWR filenames omit the build ID while retaining it internally
+- Moved the status cache to TCM while preserving the RTOS heap and 4KiB MSP reservation; user verified locks and the updated UI on hardware
 
 ### 2.0.12 — 2026-10-14
 
