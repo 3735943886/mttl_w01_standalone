@@ -2,6 +2,8 @@
 
 한국어 | [English](README_EN.md)
 
+프로젝트 자체 코드는 [MIT 라이선스](../LICENSE)로 제공합니다. [제3자 코드와 적용 범위](../LICENSING.md)
+
 [빌드 도구 사용법](../builder/README.md)
 
 이 ZIP을 압축 해제한 뒤 **MTTL-Builder**에서 `mttl-source.json`이 있는 폴더를 선택하고 빌드하십시오. 원본 폴더를 직접 빌드하지 않고 별도 작업 복사본에서 실행하므로 소스 수정 내용은 보존됩니다.

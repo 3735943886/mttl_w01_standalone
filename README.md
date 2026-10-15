@@ -2,6 +2,8 @@
 
 한국어 | [English](README_EN.md)
 
+프로젝트 자체 코드는 [MIT 라이선스](LICENSE)로 제공합니다. 제3자 구성 요소는 기존 조건을 유지합니다. [적용 범위](LICENSING.md)
+
 ## 펌웨어 빌드 도구 1.0.0 및 소스
 
 [다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0): Windows x64 빌드 도구 1.0.0 및 펌웨어 2.0.12 소스 ZIP

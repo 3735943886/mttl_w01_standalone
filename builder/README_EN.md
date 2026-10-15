@@ -2,6 +2,8 @@
 
 [한국어](README.md) | English
 
+Project-authored code uses the [MIT License](../LICENSE). [Third-party code and license scope](../LICENSING.md)
+
 ![MTTL-W01 Firmware Builder 1.0.0](../docs/builder-1.0.0.png)
 
 A portable firmware builder for Windows x64. Download the Builder ZIP and firmware 2.0.12 Source ZIP from the [Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0).

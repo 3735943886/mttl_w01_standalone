@@ -2,6 +2,8 @@
 
 [한국어](README.md) | English
 
+Project-authored code uses the [MIT License](../LICENSE). [Third-party code and license scope](../LICENSING.md)
+
 [Builder usage guide](../builder/README_EN.md)
 
 Extract the source ZIP, select the directory containing `mttl-source.json` in **MTTL-Builder**, and build. The builder compiles a separate working copy rather than your original directory, preserving your source edits.

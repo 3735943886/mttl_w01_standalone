@@ -2,6 +2,8 @@
 
 [한국어](README.md) | English
 
+Project-authored code is available under the [MIT License](LICENSE). Third-party components retain their existing terms. [License scope](LICENSING.md)
+
 ## Firmware Builder 1.0.0 and source
 
 [Download](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0): Windows x64 Builder 1.0.0 and firmware 2.0.12 Source ZIP

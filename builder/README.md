@@ -2,6 +2,8 @@
 
 한국어 | [English](README_EN.md)
 
+프로젝트 자체 코드는 [MIT 라이선스](../LICENSE)로 제공합니다. [제3자 코드와 적용 범위](../LICENSING.md)
+
 ![MTTL-W01 Firmware Builder 1.0.0](../docs/builder-1.0.0.png)
 
 Windows x64용 포터블 펌웨어 빌드 도구입니다. [Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0)에서 빌드 도구 ZIP과 펌웨어 2.0.12 소스 ZIP을 받으세요.
