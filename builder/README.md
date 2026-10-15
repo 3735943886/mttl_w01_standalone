@@ -1,41 +1,39 @@
 # MTTL-W01 Firmware Builder 1.0.0
 
+한국어 | [English](README_EN.md)
+
 ![MTTL-W01 Firmware Builder 1.0.0](../docs/builder-1.0.0.png)
 
-우상단 **English / 한국어** 버튼으로 언어를 변경합니다. 선택은 프로그램 폴더의 preferences.json에 저장합니다. 컴파일러·SDK의 원문 진단 로그와 Windows 파일 선택창의 기본 버튼 언어는 별개입니다.
+Windows x64용 포터블 펌웨어 빌드 도구입니다. [Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0)에서 빌드 도구 ZIP과 펌웨어 2.0.12 소스 ZIP을 받으세요.
 
-1. 빌드 프로그램 ZIP을 `C:\Temp\MTTL-Builder` 같은 짧은 영문 경로에 압축 해제합니다. EXE만 따로 옮기지 마십시오. 관리자 권한은 필요 없습니다.
-2. `MTTL-Builder.exe`를 실행합니다.
-3. `라이선스 안내`를 읽고 확인 체크 후 `1. 환경 준비 / 확인`을 누릅니다. 최초 인터넷 다운로드는 약 190MiB이며 시간이 걸릴 수 있습니다. 실패하면 로그를 확인하고 재시도할 수 있습니다.
-4. 별도 소스 ZIP을 `소스 ZIP 가져오기`로 불러오거나, 압축 해제한 `mttl-source.json` 폴더를 선택합니다.
-5. `2. 펌웨어 빌드`를 누릅니다. 성공한 FWR만 `output/<작업시각>/`에 저장됩니다. 실패·취소한 결과는 output에 발행하지 않습니다.
-6. 필요하면 소스를 수정하고 다시 빌드합니다. `build` 폴더는 매번 별도로 만들어 선택한 소스를 직접 변경하지 않습니다.
+## 사용 방법
+
+1. 빌드 도구 ZIP 전체를 `C:\Temp\MTTL-Builder` 같은 짧은 영문 경로에 압축 해제합니다. EXE와 `_internal` 폴더를 함께 유지하십시오. 관리자 권한은 필요 없습니다.
+2. `MTTL-Builder.exe`를 실행합니다. 우상단 **English / 한국어** 버튼으로 언어를 선택합니다. 선택은 프로그램 폴더의 `preferences.json`에 저장됩니다. 컴파일러·SDK 로그와 Windows 파일 선택창의 언어는 별개입니다.
+3. `라이선스 안내`를 읽고 확인을 체크한 다음 `1. 환경 준비 / 확인`을 누릅니다. 최초 약 197MiB를 공식 배포처에서 다운로드하므로 인터넷이 필요합니다. 실패하면 로그를 확인하고 재시도하십시오.
+4. `MTTL-W01-Source-2.0.12.zip`을 `소스 ZIP 가져오기`로 불러오거나, 압축 해제한 소스에서 `mttl-source.json`이 있는 폴더를 선택합니다.
+5. `2. 펌웨어 빌드`를 누릅니다. 성공한 FWR만 `output/<작업시각>/`에 저장됩니다. 실패·취소한 결과는 output에 발행하지 않습니다. 생성한 FWR는 기기의 웹 펌웨어 페이지에서 직접 올립니다.
+6. 수정하려면 `standalone/ui/`의 HTML·JavaScript·번역 또는 `standalone/firmware/`의 C/C++ 코드를 편집한 뒤 해당 소스 폴더를 선택하고 다시 빌드합니다. 별도 작업 복사본을 사용하므로 선택한 소스를 직접 변경하지 않습니다. 빌드 ID는 매번 새로 생성되어 해시도 달라집니다.
 
 ## 특징과 제한
 
-- 시스템 PATH·사용자/시스템 환경 변수·레지스트리·파일 연결을 변경하지 않습니다. 빌드 자식 프로세스에만 전용 PATH와 Python·임시 폴더 경로를 전달합니다.
-- SDK·컴파일러·Python·Node.js는 프로그램 전용 폴더에서만 관리합니다. 초기 준비 후에는 오프라인 빌드할 수 있습니다.
-- GUI 종료 중 작업이 있으면 취소 여부를 확인합니다. 다운로드 읽기 중 취소는 네트워크 응답/타임아웃까지 잠시 걸릴 수 있습니다.
-- 구형 GCC로 인해 **프로그램 위치는 영문 경로**를 사용하십시오. 선택한 소스 폴더는 별도 작업 폴더로 복사합니다.
-- 자동 OTA·ST-Link·기기 제어 기능은 없습니다. 만들어진 FWR는 사용자가 기기 웹에서 직접 올립니다.
-- 소스 코드는 임의 명령을 실행할 수 있습니다. 빌드는 보안 샌드박스가 아니므로 신뢰하는 소스만 빌드하십시오.
+- 시스템 PATH·환경 변수·레지스트리·파일 연결을 변경하지 않습니다. 전용 PATH·Python·임시 폴더 경로는 빌드 자식 프로세스에만 전달합니다.
+- SDK·컴파일러·Python·Node.js는 프로그램 전용 폴더에서 관리합니다. 초기 준비 후 오프라인 빌드가 가능합니다.
+- GUI 종료 중 작업이 있으면 취소 여부를 확인합니다. 다운로드 취소는 네트워크 응답이나 타임아웃까지 잠시 걸릴 수 있습니다.
+- 구형 GCC 때문에 프로그램 위치는 짧은 영문 경로를 사용하십시오. 선택한 소스는 별도 작업 폴더로 복사합니다.
+- 자동 OTA·ST-Link·기기 제어·GitHub 게시 기능은 없습니다.
+- 소스는 임의 명령을 실행할 수 있습니다. 빌드는 보안 샌드박스가 아니므로 신뢰하는 소스만 사용하십시오.
 - 수정한 코드가 메모리 한도를 초과하면 빌드가 실패합니다. 성공해도 실제 기기의 안전성·동작을 보증하지 않습니다.
-- 다운로드 캐시와 작업 폴더가 누적될 수 있으므로 여유 공간 2GB 이상을 권장합니다. 자동 삭제하지 않습니다.
-- 인터넷 프록시·백신·보안 정책에 따라 다운로드나 실행이 차단될 수 있습니다. 보안 설정을 자동으로 바꾸거나 우회하지 않습니다.
-- 사용자 PC에서 빌드·OTA·기기 동작을 확인했습니다. 새 Windows PC/VM에서의 검증은 별도입니다. GitHub에 자동 게시하지 않습니다.
+- 여유 공간 2GB 이상을 권장합니다. 다운로드 캐시·로그·작업 폴더는 누적되며 자동 삭제하지 않습니다.
+- EXE는 서명되지 않았습니다. 프록시·백신·보안 정책에 따라 다운로드나 실행이 차단될 수 있으며, 보안 설정을 자동으로 변경하거나 우회하지 않습니다.
+- 사용자 PC에서 생성한 FWR의 OTA·기기 동작을 확인했습니다. 수정한 펌웨어와 새 Windows PC/VM은 별도 확인이 필요합니다.
 
-`logs`에 단계별 로그, `dependencies.lock.json`에 다운로드 출처와 고정 해시가 있습니다. 로그에는 로컬 경로가 포함되므로 외부에 공유하기 전에 확인하십시오.
+`logs/`에 단계별 로그, `dependencies.lock.json`에 다운로드 출처·버전·고정 해시가 있습니다. 로그에는 로컬 경로가 포함되므로 공유 전에 확인하십시오. [제3자 라이선스 안내](THIRD_PARTY_NOTICES.md)를 참고하십시오.
 
-## English
+## 빌드 도구 소스
 
-1. Extract the complete Builder ZIP into a short ASCII path such as C:\Temp\MTTL-Builder. Keep the EXE and _internal folder together. Administrator rights are not required.
-2. Run MTTL-Builder.exe, read the license notices and check acceptance. Select Prepare / Check Environment. The first download is approximately 197MiB; internet access is required.
-3. Import MTTL-W01-Source-2.0.12.zip, or extract it and select the directory containing mttl-source.json.
-4. Select Build Firmware. Successful FWRs appear under output/<timestamp>/. Upload manually through the device firmware page.
-5. To customize, edit standalone/ui (HTML, JavaScript and translations) or standalone/firmware (C/C++), then select the edited source directory and rebuild. Each build uses a separate working copy and a fresh build ID, so hashes change.
+Tk를 포함한 Python 3.12에서 `app.py`를 직접 실행할 수 있습니다. `python -m unittest test_engine.py`로 엔진 테스트를 실행합니다.
 
-Tools are downloaded from pinned upstream URLs; no persistent PATH, environment or registry settings are changed. Logs and failed working copies remain separate. Allow at least 2GB of disk space. No device upload is performed. Only build trusted source. The EXE is unsigned; security software may warn. User-built FWR OTA and operation have been tested, but modified firmware and fresh Windows environments require their own checks.
+EXE 패키징에는 PyInstaller 6.16.0이 추가로 필요합니다. `--windowed --onedir --name MTTL-Builder` 옵션과 `--add-data "dependencies.lock.json;."`을 사용합니다. 배포 ZIP의 런타임 라이선스 고지는 재배포 시 유지하십시오.
 
-## Builder source
-
-Python 3.12 with Tk can run app.py directly. Run test_engine.py with unittest to check the engine. Packaging an EXE additionally requires PyInstaller 6.16.0: use --windowed --onedir --name MTTL-Builder and include dependencies.lock.json as data. The published ZIP also includes runtime license notices; retain these when redistributing. SDK/toolchain binaries are downloaded, not included in the source ZIP. Third-party terms remain applicable; source publication is not a blanket license grant.
+SDK·컴파일러 바이너리는 소스 ZIP에 포함하지 않고 별도로 다운로드합니다. 제3자 라이선스는 그대로 적용되며, 소스 공개가 모든 구성 요소에 대한 단일 라이선스 부여를 의미하지는 않습니다.
