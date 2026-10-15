@@ -1,5 +1,9 @@
 # MTTL-W01 2.0.12 — Firmware source
 
+한국어 | [English](README_EN.md)
+
+[빌드 도구 사용법](../builder/README.md)
+
 이 ZIP을 압축 해제한 뒤 **MTTL-Builder**에서 `mttl-source.json`이 있는 폴더를 선택하고 빌드하십시오. 원본 폴더를 직접 빌드하지 않고 별도 작업 복사본에서 실행하므로 소스 수정 내용은 보존됩니다.
 
 - 화면·색상: `standalone/ui/index.html`
@@ -18,8 +22,3 @@ Builder 1.0.0용 소스 스냅샷입니다. SDK와 일부 코드의 제3자 라�
 
 소스는 임의 명령을 실행할 수 있으므로 출처를 신뢰하는 소스만 빌드하십시오. 사용자가 변경한 코드와 빌드 문제에 대한 개별 지원은 이 도구에 포함되지 않습니다.
 
-## English
-
-Extract this ZIP and select the directory containing `mttl-source.json` in MTTL-Builder. The builder compiles a working copy and does not edit your selected source. Edit HTML/CSS, JavaScript, translations or C/C++ files, then rebuild. Tools and SDK are downloaded from pinned upstream URLs with hash checks; no global PATH, environment or registry settings are changed.
-
-This is the firmware source snapshot for Builder 1.0.0. No complete flash dump, stock firmware, device credentials or SDK/toolchain binaries are included. Third-party terms and existing copyright notices remain applicable; publication does not grant a blanket license over all components. Builds check the format and memory limits but do not guarantee safe device operation. Only build sources you trust.
