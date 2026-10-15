@@ -1,5 +1,7 @@
 # MTTL-W01 Standalone Firmware
 
+한국어 | [English](README_EN.md)
+
 ## 펌웨어 빌드 도구 1.0.0 및 소스
 
 [다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0): Windows x64 빌드 도구 1.0.0 및 펌웨어 2.0.12 소스 ZIP
@@ -11,14 +13,16 @@
 
 ![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
 
-한국어 | [English](README_EN.md)
+## 빌드된 펌웨어 — 바로 설치하기
+
+직접 빌드할 필요 없이 아래 FWR 파일을 다운로드하여 설치할 수 있습니다.
 
 LG U+ MTTL-W01을 별도 백엔드 서버나 DNAT 없이 Wi-Fi 웹 대시보드와
 MQTT로 Home Assistant에 연결하는 독립 펌웨어입니다.
 
 ![MTTL-W01 웹 대시보드](docs/dashboard.png)
 
-## 다운로드
+### 펌웨어 다운로드
 
 **2.0.12 / build `a01fc642c17fb9bf` · 2026-10-14**
 

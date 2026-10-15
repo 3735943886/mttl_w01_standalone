@@ -1,5 +1,7 @@
 # MTTL-W01 Standalone Firmware
 
+[한국어](README.md) | English
+
 ## Firmware Builder 1.0.0 and source
 
 [Download](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0): Windows x64 Builder 1.0.0 and firmware 2.0.12 Source ZIP
@@ -11,14 +13,16 @@ Each guide provides access to the source code and a choice of English or Korean.
 
 ![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
 
-[한국어](README.md) | English
+## Prebuilt firmware — ready to install
+
+Download and install the FWR below without building it yourself.
 
 Direct Wi-Fi web control and Home Assistant MQTT integration for the LG U+
 MTTL-W01, without a separate backend or router DNAT.
 
 ![MTTL-W01 web dashboard](docs/dashboard.png)
 
-## Download
+### Firmware download
 
 **2.0.12 / build `a01fc642c17fb9bf` · October 14, 2026**
 
