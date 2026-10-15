@@ -1,5 +1,10 @@
 # MTTL-W01 Standalone Firmware
 
+## Firmware Builder 1.0.0 and source
+
+Download the Windows x64 builder and firmware 2.0.12 source ZIP from [Builder 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0). See the [English / Korean build guide](builder/README.md). Source code: [firmware](source/) and [builder](builder/).
+
+
 [한국어](README.md) | English
 
 Direct Wi-Fi web control and Home Assistant MQTT integration for the LG U+
@@ -124,7 +129,7 @@ Trusted LANs only: HTTP/MQTT are unencrypted; there is no web login, OTA token o
 firmware signature authentication. Never expose ports to the Internet. Origin checks
 are not user authentication.
 
-This repository distributes firmware and documentation, not the complete buildable SDK source.
+Firmware and builder sources and build instructions are available. The builder downloads the SDK and compiler separately from upstream distribution sites.
 
 ## Scheduler
 

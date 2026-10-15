@@ -1,0 +1,605 @@
+{
+  "schema": 1,
+  "version": "0.1.0-test",
+  "artifacts": [
+    {
+      "name": "gcc",
+      "file": "gcc-arm-none-eabi-4.8.3-2014q1-windows.tar.gz",
+      "url": "https://downloads.arduino.cc/gcc-arm-none-eabi-4.8.3-2014q1-windows.tar.gz",
+      "sha256": "fd8c111c861144f932728e00abd3f7d1107e186eb9cd6083a54c7236ea78b7c2",
+      "kind": "gcc",
+      "bytes": 84537449
+    },
+    {
+      "name": "sdk",
+      "file": "ameba_1-2.0.12-build20220509.tar.gz",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/release/ameba_1-2.0.12-build20220509.tar.gz",
+      "kind": "sdk_release",
+      "sha256": "9f76a7d82a1f98ea283927824415f19c9047a160e65287e60390a6fb69c5084b",
+      "bytes": 10506145
+    },
+    {
+      "name": "python",
+      "file": "python-3.12.10-embed-amd64.zip",
+      "url": "https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip",
+      "kind": "python",
+      "sha256": "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3",
+      "bytes": 11133606
+    },
+    {
+      "name": "node",
+      "file": "node-v22.14.0.exe",
+      "url": "https://nodejs.org/dist/v22.14.0/win-x64/node.exe",
+      "kind": "node",
+      "sha256": "33b1bc1a8aca11fd5a4f2699e51019c63c0af30cf437701d07af69be7706771b",
+      "bytes": 83344536
+    },
+    {
+      "name": "sdk/cores/arduino/Arduino.h",
+      "file": "sdk-overlay-9490073d094526c21783",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/Arduino.h",
+      "sha256": "9490073d094526c2178312ba698664ec7dc927c152fa3b11524d9da017fb4e81",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/Arduino.h",
+      "bytes": 3478
+    },
+    {
+      "name": "sdk/cores/arduino/ard_ssl.c",
+      "file": "sdk-overlay-1a6d92cca8ef8eadcc07",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/ard_ssl.c",
+      "sha256": "1a6d92cca8ef8eadcc0765e0196c512f6c582097abab2d5b7a15a9b6b36f88e5",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/ard_ssl.c",
+      "bytes": 13908
+    },
+    {
+      "name": "sdk/cores/arduino/font5x7.h",
+      "file": "sdk-overlay-5b56c76810b519b5961c",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/font5x7.h",
+      "sha256": "5b56c76810b519b5961c294473926cf13f67482d2dfbee42f82867dcaf985469",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/font5x7.h",
+      "bytes": 11443
+    },
+    {
+      "name": "sdk/cores/arduino/PowerManagement.h",
+      "file": "sdk-overlay-301925e3c9de3e34dd9d",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/PowerManagement.h",
+      "sha256": "301925e3c9de3e34dd9d8dc036d833d2f5be969ffebe74c85e9cec8b63ee37aa",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/PowerManagement.h",
+      "bytes": 2561
+    },
+    {
+      "name": "sdk/cores/arduino/Stream.cpp",
+      "file": "sdk-overlay-6c3eae42e6c4d1965683",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/Stream.cpp",
+      "sha256": "6c3eae42e6c4d1965683f8e6dd90b7f20bea8e85fe0de26ea5a7a9112ac412a2",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/Stream.cpp",
+      "bytes": 8677
+    },
+    {
+      "name": "sdk/cores/arduino/Stream.h",
+      "file": "sdk-overlay-e4c12b2ca008ae6e8abb",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/Stream.h",
+      "sha256": "e4c12b2ca008ae6e8abb47ca6a72b9ed3d353787dea4ff59fc7fff5224335887",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/Stream.h",
+      "bytes": 5054
+    },
+    {
+      "name": "sdk/cores/arduino/wifi_drv.cpp",
+      "file": "sdk-overlay-50d2e61244fc057514dd",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/wifi_drv.cpp",
+      "sha256": "50d2e61244fc057514ddc8291e592422477935f514c4f8ebad5cc7fe7c9e79d5",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/wifi_drv.cpp",
+      "bytes": 11121
+    },
+    {
+      "name": "sdk/cores/arduino/wifi_drv.h",
+      "file": "sdk-overlay-09a6658e1910e5ae52e5",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/wifi_drv.h",
+      "sha256": "09a6658e1910e5ae52e51823d7a586ae85b742cdbaa5a803ac71ce1342b62cb9",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/wifi_drv.h",
+      "bytes": 8624
+    },
+    {
+      "name": "sdk/cores/arduino/wiring.h",
+      "file": "sdk-overlay-361f373c2c80d187c767",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/wiring.h",
+      "sha256": "361f373c2c80d187c76768d874b00f73645be648d90185571632648ae75d4097",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/wiring.h",
+      "bytes": 2174
+    },
+    {
+      "name": "sdk/cores/arduino/wiring_os.h",
+      "file": "sdk-overlay-0cc476d2aae885648d3c",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/wiring_os.h",
+      "sha256": "0cc476d2aae885648d3c443e5e63f03d8a95a35f1e54286c27989a4aec13a423",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/wiring_os.h",
+      "bytes": 10329
+    },
+    {
+      "name": "sdk/cores/arduino/wiring_watchdog.h",
+      "file": "sdk-overlay-f5b15b20b95bc454d3ba",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/wiring_watchdog.h",
+      "sha256": "f5b15b20b95bc454d3ba873299ccbb2790e9072cf2e61a18c13a1ae7b50cb9a2",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/wiring_watchdog.h",
+      "bytes": 872
+    },
+    {
+      "name": "sdk/cores/arduino/wl_definitions.h",
+      "file": "sdk-overlay-e266c277b48f2eae1af7",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/wl_definitions.h",
+      "sha256": "e266c277b48f2eae1af7edcc66fedf3f96afab36a7120c64937010fff21396ad",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/wl_definitions.h",
+      "bytes": 3186
+    },
+    {
+      "name": "sdk/cores/arduino/WString.h",
+      "file": "sdk-overlay-143b8a7f744a3ee35ccd",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/cores/arduino/WString.h",
+      "sha256": "143b8a7f744a3ee35ccd04081f6b7af4973a8b8d259343aae50bcc1c53d7aa57",
+      "kind": "sdkfile",
+      "relative": "cores/arduino/WString.h",
+      "bytes": 9705
+    },
+    {
+      "name": "sdk/libraries/Analog/AmebaServo.h",
+      "file": "sdk-overlay-6b6991b14be51b868088",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Analog/AmebaServo.h",
+      "sha256": "6b6991b14be51b8680881654b24160354e50c684a8d325a8e030a466bea81695",
+      "kind": "sdkfile",
+      "relative": "libraries/Analog/AmebaServo.h",
+      "bytes": 4012
+    },
+    {
+      "name": "sdk/libraries/Audio/Alexa.cpp",
+      "file": "sdk-overlay-391b15cbff79ebfbbb7b",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Audio/Alexa.cpp",
+      "sha256": "391b15cbff79ebfbbb7b7f1842c2ce9a723cc90f05d1482df46455264bc97a29",
+      "kind": "sdkfile",
+      "relative": "libraries/Audio/Alexa.cpp",
+      "bytes": 25373
+    },
+    {
+      "name": "sdk/libraries/Audio/examples/alexa_basic/alexa_basic.ino",
+      "file": "sdk-overlay-8329267075776754fd93",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Audio/examples/alexa_basic/alexa_basic.ino",
+      "sha256": "8329267075776754fd93abe412fea0b20ea1c615f4c4ae2bc586724c012f86af",
+      "kind": "sdkfile",
+      "relative": "libraries/Audio/examples/alexa_basic/alexa_basic.ino",
+      "bytes": 2937
+    },
+    {
+      "name": "sdk/libraries/Fatfs/SdFatFile.h",
+      "file": "sdk-overlay-ca6cfff3f9b2b714c616",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Fatfs/SdFatFile.h",
+      "sha256": "ca6cfff3f9b2b714c6160b8acd23b0c6e3824a61ea5453f4510a53de25753f08",
+      "kind": "sdkfile",
+      "relative": "libraries/Fatfs/SdFatFile.h",
+      "bytes": 2273
+    },
+    {
+      "name": "sdk/libraries/Fatfs/SdFatFs.h",
+      "file": "sdk-overlay-99e3e0005c2d1f3bc712",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Fatfs/SdFatFs.h",
+      "sha256": "99e3e0005c2d1f3bc7129d300224d7c3149220f82413f55a99458d4092fa3662",
+      "kind": "sdkfile",
+      "relative": "libraries/Fatfs/SdFatFs.h",
+      "bytes": 4145
+    },
+    {
+      "name": "sdk/libraries/FlashMemory/examples/ReadWriteOneWord/ReadWriteOneWord.ino",
+      "file": "sdk-overlay-f2e8edcf98ba8d38294a",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/FlashMemory/examples/ReadWriteOneWord/ReadWriteOneWord.ino",
+      "sha256": "f2e8edcf98ba8d38294a6cdf086f6249c76c22c2ea097d62df026e065feb094a",
+      "kind": "sdkfile",
+      "relative": "libraries/FlashMemory/examples/ReadWriteOneWord/ReadWriteOneWord.ino",
+      "bytes": 650
+    },
+    {
+      "name": "sdk/libraries/FlashMemory/FlashMemory.h",
+      "file": "sdk-overlay-97a5260911cd26d7b568",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/FlashMemory/FlashMemory.h",
+      "sha256": "97a5260911cd26d7b5682841a3b36f99a78b27416e68a79a63e460f26f2eab98",
+      "kind": "sdkfile",
+      "relative": "libraries/FlashMemory/FlashMemory.h",
+      "bytes": 3027
+    },
+    {
+      "name": "sdk/libraries/GPIO/DHT.cpp",
+      "file": "sdk-overlay-68a2993ae1b957f1e6eb",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/GPIO/DHT.cpp",
+      "sha256": "68a2993ae1b957f1e6eb37365d0d064e91a861e20eecdb6c65b4362a6375e738",
+      "kind": "sdkfile",
+      "relative": "libraries/GPIO/DHT.cpp",
+      "bytes": 9147
+    },
+    {
+      "name": "sdk/libraries/GPIO/examples/HCSR04Ultrasonic/HCSR04Ultrasonic.ino",
+      "file": "sdk-overlay-36084f8ec5149f593535",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/GPIO/examples/HCSR04Ultrasonic/HCSR04Ultrasonic.ino",
+      "sha256": "36084f8ec5149f593535dd3e2689181b2deccc5494dd45089056bf2291f80567",
+      "kind": "sdkfile",
+      "relative": "libraries/GPIO/examples/HCSR04Ultrasonic/HCSR04Ultrasonic.ino",
+      "bytes": 1113
+    },
+    {
+      "name": "sdk/libraries/GPIO/library.properties",
+      "file": "sdk-overlay-6a587ca93c47092fbdcb",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/GPIO/library.properties",
+      "sha256": "6a587ca93c47092fbdcb2abe37d2a6b77b3f4362f781b38d85184c345036cd2c",
+      "kind": "sdkfile",
+      "relative": "libraries/GPIO/library.properties",
+      "bytes": 282
+    },
+    {
+      "name": "sdk/libraries/Http/HttpClient.h",
+      "file": "sdk-overlay-5606f52182037c41a380",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Http/HttpClient.h",
+      "sha256": "5606f52182037c41a3803f5205b22aed77b685ea800baef47a54a644865a066e",
+      "kind": "sdkfile",
+      "relative": "libraries/Http/HttpClient.h",
+      "bytes": 20901
+    },
+    {
+      "name": "sdk/libraries/MQTTClient/examples/amazon_awsiot_basic/amazon_awsiot_basic.ino",
+      "file": "sdk-overlay-87c3bc11e1dcba666432",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/MQTTClient/examples/amazon_awsiot_basic/amazon_awsiot_basic.ino",
+      "sha256": "87c3bc11e1dcba666432b4660b96fd12b2f394673077c618eb794ef6e212b675",
+      "kind": "sdkfile",
+      "relative": "libraries/MQTTClient/examples/amazon_awsiot_basic/amazon_awsiot_basic.ino",
+      "bytes": 9310
+    },
+    {
+      "name": "sdk/libraries/MQTTClient/examples/amazon_awsiot_with_ack/amazon_awsiot_with_ack.ino",
+      "file": "sdk-overlay-d2a0f7bd00dcb4f7b75f",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/MQTTClient/examples/amazon_awsiot_with_ack/amazon_awsiot_with_ack.ino",
+      "sha256": "d2a0f7bd00dcb4f7b75f6a1e63cb73abd0b836584944c9df03e6eb837303c78e",
+      "kind": "sdkfile",
+      "relative": "libraries/MQTTClient/examples/amazon_awsiot_with_ack/amazon_awsiot_with_ack.ino",
+      "bytes": 9877
+    },
+    {
+      "name": "sdk/libraries/MQTTClient/examples/AmebaCloud_SmartCurtain/AmebaCloud_SmartCurtain.ino",
+      "file": "sdk-overlay-f078798d0426785246c4",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/MQTTClient/examples/AmebaCloud_SmartCurtain/AmebaCloud_SmartCurtain.ino",
+      "sha256": "f078798d0426785246c4b2715aea9f8593d86dadbef622bd5063d48dae7e7f5e",
+      "kind": "sdkfile",
+      "relative": "libraries/MQTTClient/examples/AmebaCloud_SmartCurtain/AmebaCloud_SmartCurtain.ino",
+      "bytes": 3095
+    },
+    {
+      "name": "sdk/libraries/MQTTClient/examples/AmebaCloud_WindowSecuritySystem_Switch/AmebaCloud_WindowSecuritySystem_Switch.ino",
+      "file": "sdk-overlay-bc9517e514c35aed5ea9",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/MQTTClient/examples/AmebaCloud_WindowSecuritySystem_Switch/AmebaCloud_WindowSecuritySystem_Switch.ino",
+      "sha256": "bc9517e514c35aed5ea96d5ab90c7769f3c64427c8e21c368d6d01f8130531e9",
+      "kind": "sdkfile",
+      "relative": "libraries/MQTTClient/examples/AmebaCloud_WindowSecuritySystem_Switch/AmebaCloud_WindowSecuritySystem_Switch.ino",
+      "bytes": 2835
+    },
+    {
+      "name": "sdk/libraries/MQTTClient/examples/lass_for_dht_plus_ps_nfc/lass_for_dht_plus_ps_nfc.ino",
+      "file": "sdk-overlay-05cd8ef9d7bde743df36",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/MQTTClient/examples/lass_for_dht_plus_ps_nfc/lass_for_dht_plus_ps_nfc.ino",
+      "sha256": "05cd8ef9d7bde743df36e46c884e715eeb45b5b5d640cd38fcbb1d54a41c5040",
+      "kind": "sdkfile",
+      "relative": "libraries/MQTTClient/examples/lass_for_dht_plus_ps_nfc/lass_for_dht_plus_ps_nfc.ino",
+      "bytes": 6639
+    },
+    {
+      "name": "sdk/libraries/MQTTClient/examples/mqtt_publish_in_callback/mqtt_publish_in_callback.ino",
+      "file": "sdk-overlay-e432d3127a67f157f6cb",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/MQTTClient/examples/mqtt_publish_in_callback/mqtt_publish_in_callback.ino",
+      "sha256": "e432d3127a67f157f6cb8735bea1fe0cc14b8875e51d9e2d0e8a57efec351fee",
+      "kind": "sdkfile",
+      "relative": "libraries/MQTTClient/examples/mqtt_publish_in_callback/mqtt_publish_in_callback.ino",
+      "bytes": 2170
+    },
+    {
+      "name": "sdk/libraries/MQTTClient/src/PubSubClient.h",
+      "file": "sdk-overlay-9ae0332cfb5ca172506a",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/MQTTClient/src/PubSubClient.h",
+      "sha256": "9ae0332cfb5ca172506ad6253c96023fc13e49d0ba1eb371aa99ace0708539fc",
+      "kind": "sdkfile",
+      "relative": "libraries/MQTTClient/src/PubSubClient.h",
+      "bytes": 6941
+    },
+    {
+      "name": "sdk/libraries/NFC/NfcTag.h",
+      "file": "sdk-overlay-2a9af9691f18eb2fcb7a",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/NFC/NfcTag.h",
+      "sha256": "2a9af9691f18eb2fcb7ab587237055190bf620ccc158a7a83095573a0c758b17",
+      "kind": "sdkfile",
+      "relative": "libraries/NFC/NfcTag.h",
+      "bytes": 9335
+    },
+    {
+      "name": "sdk/libraries/OTA/examples/ota_non_block/ota_non_block.ino",
+      "file": "sdk-overlay-467a81acc2dc809e101f",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/OTA/examples/ota_non_block/ota_non_block.ino",
+      "sha256": "467a81acc2dc809e101fa679719b7319bdf7c9c46ce74be36ea8b64237d577d1",
+      "kind": "sdkfile",
+      "relative": "libraries/OTA/examples/ota_non_block/ota_non_block.ino",
+      "bytes": 2453
+    },
+    {
+      "name": "sdk/libraries/SoftwareSerial/examples/SoftwareSerialIrqCallback/SoftwareSerialIrqCallback.ino",
+      "file": "sdk-overlay-cdda9b184303118f5ba1",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/SoftwareSerial/examples/SoftwareSerialIrqCallback/SoftwareSerialIrqCallback.ino",
+      "sha256": "cdda9b184303118f5ba17530a488d0c45082b0c45257c667b47ffab8460f693e",
+      "kind": "sdkfile",
+      "relative": "libraries/SoftwareSerial/examples/SoftwareSerialIrqCallback/SoftwareSerialIrqCallback.ino",
+      "bytes": 1729
+    },
+    {
+      "name": "sdk/libraries/SoftwareSerial/PMS3003.cpp",
+      "file": "sdk-overlay-059ce9fc4b27fbe941d5",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/SoftwareSerial/PMS3003.cpp",
+      "sha256": "059ce9fc4b27fbe941d5d7695afe13a6b56257b69eeb815f4694499b783c7903",
+      "kind": "sdkfile",
+      "relative": "libraries/SoftwareSerial/PMS3003.cpp",
+      "bytes": 4491
+    },
+    {
+      "name": "sdk/libraries/SPI/SPI.cpp",
+      "file": "sdk-overlay-21b8ec4e4830bee48caa",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/SPI/SPI.cpp",
+      "sha256": "21b8ec4e4830bee48caa78c4ebc56c0ff01da5f5f86ba0404caff61831eb8afd",
+      "kind": "sdkfile",
+      "relative": "libraries/SPI/SPI.cpp",
+      "bytes": 5229
+    },
+    {
+      "name": "sdk/libraries/UVC/UVC.h",
+      "file": "sdk-overlay-60327c1b009d8ec3a170",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/UVC/UVC.h",
+      "sha256": "60327c1b009d8ec3a170c872f317a6dc397e8939f2579eb267e5d83770cd0192",
+      "kind": "sdkfile",
+      "relative": "libraries/UVC/UVC.h",
+      "bytes": 2914
+    },
+    {
+      "name": "sdk/libraries/UVC/uvc_basic/uvc_basic.ino",
+      "file": "sdk-overlay-815e19eeb12277999712",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/UVC/uvc_basic/uvc_basic.ino",
+      "sha256": "815e19eeb1227799971264f697bd4312a94130a188cf1a70431ebd5a6f4e6529",
+      "kind": "sdkfile",
+      "relative": "libraries/UVC/uvc_basic/uvc_basic.ino",
+      "bytes": 1726
+    },
+    {
+      "name": "sdk/libraries/UVC/uvc_with_ap_mode/uvc_with_ap_mode.ino",
+      "file": "sdk-overlay-9b8593d92285fc06a58b",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/UVC/uvc_with_ap_mode/uvc_with_ap_mode.ino",
+      "sha256": "9b8593d92285fc06a58bf0d33255346b7847b1f0ca157675da2ca5f06841e9fd",
+      "kind": "sdkfile",
+      "relative": "libraries/UVC/uvc_with_ap_mode/uvc_with_ap_mode.ino",
+      "bytes": 1783
+    },
+    {
+      "name": "sdk/libraries/WiFi/examples/misc/CalculateUdpReceiveDelay/CalculateUdpReceiveDelay.ino",
+      "file": "sdk-overlay-d46cbecccddf2ab85a5b",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/WiFi/examples/misc/CalculateUdpReceiveDelay/CalculateUdpReceiveDelay.ino",
+      "sha256": "d46cbecccddf2ab85a5b121fb30bc7ad2a9bb25039bb8548e4ff2c93213750d6",
+      "kind": "sdkfile",
+      "relative": "libraries/WiFi/examples/misc/CalculateUdpReceiveDelay/CalculateUdpReceiveDelay.ino",
+      "bytes": 3982
+    },
+    {
+      "name": "sdk/libraries/WiFi/examples/misc/CalculateUdpReceiveTimeout/CalculateUdpReceiveTimeout.ino",
+      "file": "sdk-overlay-76d2440881d6c06d60e8",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/WiFi/examples/misc/CalculateUdpReceiveTimeout/CalculateUdpReceiveTimeout.ino",
+      "sha256": "76d2440881d6c06d60e8f3fe0203cdfa301378abc6b69a484225b4939d4e0fb2",
+      "kind": "sdkfile",
+      "relative": "libraries/WiFi/examples/misc/CalculateUdpReceiveTimeout/CalculateUdpReceiveTimeout.ino",
+      "bytes": 3395
+    },
+    {
+      "name": "sdk/libraries/WiFi/examples/misc/CalculateUdpSendDelay/CalculateUdpSendDelay.ino",
+      "file": "sdk-overlay-039cdd9ad28fc7726fcc",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/WiFi/examples/misc/CalculateUdpSendDelay/CalculateUdpSendDelay.ino",
+      "sha256": "039cdd9ad28fc7726fcc8aa5cf8e406473a32407b4bb120116596058f573e0aa",
+      "kind": "sdkfile",
+      "relative": "libraries/WiFi/examples/misc/CalculateUdpSendDelay/CalculateUdpSendDelay.ino",
+      "bytes": 3904
+    },
+    {
+      "name": "sdk/libraries/WiFi/examples/SimpleWebServerWiFi/SimpleWebServerWiFi.ino",
+      "file": "sdk-overlay-a5b83e09976adc05d538",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/WiFi/examples/SimpleWebServerWiFi/SimpleWebServerWiFi.ino",
+      "sha256": "a5b83e09976adc05d5382d196885cdcca0eebdc11d03bf4a6e5ff38737b8f785",
+      "kind": "sdkfile",
+      "relative": "libraries/WiFi/examples/SimpleWebServerWiFi/SimpleWebServerWiFi.ino",
+      "bytes": 4224
+    },
+    {
+      "name": "sdk/libraries/WiFi/examples/WiFiWebServer/WiFiWebServer.ino",
+      "file": "sdk-overlay-1fb878658c03566936c5",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/WiFi/examples/WiFiWebServer/WiFiWebServer.ino",
+      "sha256": "1fb878658c03566936c53f7a0ef4770d36af15c5bea57b83be805e1719732146",
+      "kind": "sdkfile",
+      "relative": "libraries/WiFi/examples/WiFiWebServer/WiFiWebServer.ino",
+      "bytes": 3558
+    },
+    {
+      "name": "sdk/libraries/Wire/I2CIO.cpp",
+      "file": "sdk-overlay-3467baeb73b7125f1fe1",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Wire/I2CIO.cpp",
+      "sha256": "3467baeb73b7125f1fe1c096dd9302dbb30284bceeb436a49b7b1d008713ce2e",
+      "kind": "sdkfile",
+      "relative": "libraries/Wire/I2CIO.cpp",
+      "bytes": 4849
+    },
+    {
+      "name": "sdk/libraries/Wire/LCD.cpp",
+      "file": "sdk-overlay-1f4ca60e77b329d81bb7",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Wire/LCD.cpp",
+      "sha256": "1f4ca60e77b329d81bb7d7cecf3a53d7e7bb0fc85d5e1a0d9164dd293f9b26c8",
+      "kind": "sdkfile",
+      "relative": "libraries/Wire/LCD.cpp",
+      "bytes": 9784
+    },
+    {
+      "name": "sdk/libraries/Wire/LCD.h",
+      "file": "sdk-overlay-290caa8f7a0c26d1dbdf",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Wire/LCD.h",
+      "sha256": "290caa8f7a0c26d1dbdf9edfc119973429b1e90fe1ce6335d1b76f8019523355",
+      "kind": "sdkfile",
+      "relative": "libraries/Wire/LCD.h",
+      "bytes": 18369
+    },
+    {
+      "name": "sdk/libraries/Wire/Wire.cpp",
+      "file": "sdk-overlay-60e18ee86afd1dbc2e0a",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/libraries/Wire/Wire.cpp",
+      "sha256": "60e18ee86afd1dbc2e0a89f99340a957d9a0aa5f492b037b32f4a0a9b80f6fab",
+      "kind": "sdkfile",
+      "relative": "libraries/Wire/Wire.cpp",
+      "bytes": 6904
+    },
+    {
+      "name": "sdk/system/component/common/mbed/hal_ext/wdt_api.h",
+      "file": "sdk-overlay-47b802d9cca3e3fe1ee7",
+      "url": "https://raw.githubusercontent.com/Ameba-AIoT/ameba-arduino-1/819d5a3252a4294847dc035bc431b1437dddbee3/Arduino_package/hardware/system/component/common/mbed/hal_ext/wdt_api.h",
+      "sha256": "47b802d9cca3e3fe1ee77d38fd628e695f3e7fb38a0a6ac7bffa0f4d85a98c0b",
+      "kind": "sdkfile",
+      "relative": "system/component/common/mbed/hal_ext/wdt_api.h",
+      "bytes": 2057
+    },
+    {
+      "name": "unicorn",
+      "file": "unicorn-2.1.4-cp37-abi3-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/70/3d/de7be9bd1addabe6d8a1369381f8a080400c349850e978689c5e18287957/unicorn-2.1.4-cp37-abi3-win_amd64.whl",
+      "sha256": "d7107500c64ce5c168fbff6bef9485b5db1350050036f4cea568650cf8bdbdf5",
+      "kind": "wheel",
+      "bytes": 15943079
+    },
+    {
+      "name": "zopfli",
+      "file": "zopfli-0.4.3-cp310-abi3-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/9d/3a/4ff4fdead77ef30f5832b38a47eb7a1283e98b3c678576b83f8fdfff53eb/zopfli-0.4.3-cp310-abi3-win_amd64.whl",
+      "sha256": "921c2c9907f4364963848da5ad194b46d68865e07fdb975d04fd09bc42d47357",
+      "kind": "wheel",
+      "bytes": 288550
+    },
+    {
+      "name": "terser",
+      "file": "terser-5.44.0.tgz",
+      "url": "https://registry.npmjs.org/terser/-/terser-5.44.0.tgz",
+      "kind": "npm",
+      "package": "terser",
+      "integrity": "sha512-nIVck8DK+GM/0Frwd+nIhZ84pR/BX7rmXMfYwyg+Sri5oGVE99/E3KvXqpC2xHFxyqXyGHTKBSioxxplrO4I4w==",
+      "sha256": "86b954e059e70d536a7918fdf7f2f74292e81e03f30a9ab4bd281484e7c9edfc",
+      "bytes": 450464
+    },
+    {
+      "name": "@jridgewell/source-map",
+      "file": "jridgewell-source-map-0.3.11.tgz",
+      "url": "https://registry.npmjs.org/@jridgewell/source-map/-/source-map-0.3.11.tgz",
+      "kind": "npm",
+      "package": "@jridgewell/source-map",
+      "integrity": "sha512-ZMp1V8ZFcPG5dIWnQLr3NSI1MiCU7UETdS/A0G8V/XWHvJv3ZsFqutJn1Y5RPmAPX6F3BiE397OqveU/9NCuIA==",
+      "sha256": "002115a6e70a202b154333b911f30575aa0164e865a83fb1c766047a579d3ce5",
+      "bytes": 7371
+    },
+    {
+      "name": "@jridgewell/gen-mapping",
+      "file": "jridgewell-gen-mapping-0.3.13.tgz",
+      "url": "https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz",
+      "kind": "npm",
+      "package": "@jridgewell/gen-mapping",
+      "integrity": "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==",
+      "sha256": "bc16f658c1f6d63e0c8738ab881d03f49f1955d8f853cdcb8f7d315cf62f0082",
+      "bytes": 17972
+    },
+    {
+      "name": "@jridgewell/trace-mapping",
+      "file": "jridgewell-trace-mapping-0.3.31.tgz",
+      "url": "https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz",
+      "kind": "npm",
+      "package": "@jridgewell/trace-mapping",
+      "integrity": "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==",
+      "sha256": "c64c71a119630d5abe8246889edf334b2ca9ddad094e20d623332956b1453ccf",
+      "bytes": 30747
+    },
+    {
+      "name": "@jridgewell/resolve-uri",
+      "file": "jridgewell-resolve-uri-3.1.2.tgz",
+      "url": "https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.2.tgz",
+      "kind": "npm",
+      "package": "@jridgewell/resolve-uri",
+      "integrity": "sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==",
+      "sha256": "db52f9f62558baab13353dd39e3200750fc33e6a129a575b46226f493776e230",
+      "bytes": 9622
+    },
+    {
+      "name": "@jridgewell/sourcemap-codec",
+      "file": "jridgewell-sourcemap-codec-1.6.0.tgz",
+      "url": "https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.6.0.tgz",
+      "kind": "npm",
+      "package": "@jridgewell/sourcemap-codec",
+      "integrity": "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==",
+      "sha256": "f30a35f6af8c347d01b8ff2f8662272f7d986cf21b916704d86c249a90b97e25",
+      "bytes": 18401
+    },
+    {
+      "name": "acorn",
+      "file": "acorn-8.19.0.tgz",
+      "url": "https://registry.npmjs.org/acorn/-/acorn-8.19.0.tgz",
+      "kind": "npm",
+      "package": "acorn",
+      "integrity": "sha512-oJlA3XiRm7Cyk6qFD2Jn8ak9B7jSy0qy00ADO3+8dpT0LSjFihQYv4C02LFCSYJV3Q37xYwwRy5m+IpIiUzqWw==",
+      "sha256": "c6fad21ffa1f2ba20338bf1dde1de911c2093c1aaf7b3af17c477661bd3bfaaf",
+      "bytes": 134282
+    },
+    {
+      "name": "commander",
+      "file": "commander-2.20.3.tgz",
+      "url": "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz",
+      "kind": "npm",
+      "package": "commander",
+      "integrity": "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==",
+      "sha256": "3c02903de017a98d4dc3fe2bed4900beb0d04cf7b679dca0915fd8c759652b55",
+      "bytes": 18702
+    },
+    {
+      "name": "source-map-support",
+      "file": "source-map-support-0.5.21.tgz",
+      "url": "https://registry.npmjs.org/source-map-support/-/source-map-support-0.5.21.tgz",
+      "kind": "npm",
+      "package": "source-map-support",
+      "integrity": "sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==",
+      "sha256": "5d9b04ef3e6824fdcf91cfcc03ab427fae486bc6859735805593f51b3554f636",
+      "bytes": 26650
+    },
+    {
+      "name": "source-map",
+      "file": "source-map-0.6.1.tgz",
+      "url": "https://registry.npmjs.org/source-map/-/source-map-0.6.1.tgz",
+      "kind": "npm",
+      "package": "source-map",
+      "integrity": "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==",
+      "sha256": "bdbca10d17ff5a5802d5acfc7b2f22f9f9bf587632a95650d3c5f513c7092b86",
+      "bytes": 199644
+    },
+    {
+      "name": "buffer-from",
+      "file": "buffer-from-1.1.2.tgz",
+      "url": "https://registry.npmjs.org/buffer-from/-/buffer-from-1.1.2.tgz",
+      "kind": "npm",
+      "package": "buffer-from",
+      "integrity": "sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==",
+      "sha256": "9c2b03d59eca8f463a1927e07273ddaa87785fe3f61626c42b005540e962e343",
+      "bytes": 2313
+    }
+  ]
+}
