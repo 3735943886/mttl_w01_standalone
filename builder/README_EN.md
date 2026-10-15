@@ -9,7 +9,7 @@ A portable firmware builder for Windows x64. Download the Builder ZIP and firmwa
 ## Usage
 
 1. Extract the entire Builder ZIP into a short ASCII path such as `C:\Temp\MTTL-Builder`. Keep the EXE and `_internal` folder together. Administrator rights are not required.
-2. Run `MTTL-Builder.exe`. Select the language with the **English / 한국어** button at the top right. Your selection is saved in `preferences.json` in the program folder. Compiler/SDK logs and Windows file dialogs use their own languages.
+2. Run `MTTL-Builder.exe`. Select the language with the **English / 한국어** button at the top right. After changing the language, close and restart the program for the change to take effect. Your selection is saved in `preferences.json` in the program folder. Compiler/SDK logs and Windows file dialogs use their own languages.
 3. Read `License notices`, check acceptance, and select `1. Prepare / check tools`. The first preparation downloads approximately 197MiB from upstream distribution sites and requires internet access. If it fails, check the logs and retry.
 4. Import `MTTL-W01-Source-2.0.12.zip` with `Import source ZIP`, or extract it and select the source directory containing `mttl-source.json`.
 5. Select `2. Build firmware`. Only successful FWRs are saved under `output/<timestamp>/`. Failed or cancelled results are not published to output. Upload the generated FWR manually through the device firmware web page.
