@@ -17,6 +17,8 @@ A portable firmware builder for Windows x64. Download the Builder ZIP and firmwa
 
 ## Features and limitations
 
+The developer accepts no responsibility for problems or consequences arising from user modifications or self-built firmware. Questions and troubleshooting requests related to user modifications or builds are not supported. Please do not open issues for these topics.
+
 - No persistent PATH, environment, registry or file-association changes. Dedicated PATH, Python and temporary-directory settings apply only to build child processes.
 - SDK, compiler, Python and Node.js are managed inside the program's own folder. Offline builds are available after preparation.
 - Closing the GUI during a task asks whether to cancel. Download cancellation may wait for a network response or timeout.

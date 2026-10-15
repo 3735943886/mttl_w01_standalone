@@ -20,4 +20,6 @@ The builder downloads the specified SDK and tools from upstream distribution sit
 
 To remove dependence on a personal dump, this source package does not include the comparison test that executes the original firmware decoder. It does perform FWR length, checksum, hardware-field and round-trip checks, along with ARM initialization-code emulation checks. A successful build does not guarantee safe or correct device operation. Memory headroom is limited, so adding code may exceed build limits.
 
-Source can execute arbitrary commands; only build sources you trust. Individual support for user-modified code and build problems is not included with this tool.
+Source can execute arbitrary commands; only build sources you trust.
+
+The developer accepts no responsibility for problems or consequences arising from user modifications or self-built firmware. Questions and troubleshooting requests related to user modifications or builds are not supported. Please do not open issues for these topics.

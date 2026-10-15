@@ -8,7 +8,7 @@
 
 [Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
 
-Each guide provides access to the source code and a choice of English or Korean.
+The developer accepts no responsibility for problems or consequences arising from user modifications or self-built firmware. Questions and troubleshooting requests related to user modifications or builds are not supported. Please do not open issues for these topics.
 
 
 ![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
