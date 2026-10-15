@@ -2,7 +2,11 @@
 
 ## 펌웨어 빌드 도구 1.0.0 및 소스
 
-[Builder 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0)에서 Windows x64 빌드 도구와 펌웨어 2.0.12 소스 ZIP을 받으세요. [한글·영문 사용법](builder/README.md)을 제공합니다. 코드: [펌웨어 소스](source/), [빌드 도구 소스](builder/).
+[다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0): Windows x64 빌드 도구 1.0.0 및 펌웨어 2.0.12 소스 ZIP
+
+[빌드 도구 사용법](builder/README.md) · [펌웨어 소스 안내](source/README.md)
+
+각 안내 페이지에서 소스 코드를 확인하고 한국어·영어를 선택할 수 있습니다.
 
 
 ![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)

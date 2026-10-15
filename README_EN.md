@@ -2,7 +2,11 @@
 
 ## Firmware Builder 1.0.0 and source
 
-Download the Windows x64 builder and firmware 2.0.12 source ZIP from [Builder 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0). See the [English / Korean build guide](builder/README_EN.md). Source code: [firmware](source/) and [builder](builder/).
+[Download](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0): Windows x64 Builder 1.0.0 and firmware 2.0.12 Source ZIP
+
+[Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
+
+Each guide provides access to the source code and a choice of English or Korean.
 
 
 ![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
