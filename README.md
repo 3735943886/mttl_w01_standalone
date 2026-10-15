@@ -5,6 +5,8 @@
 [Builder 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0)에서 Windows x64 빌드 도구와 펌웨어 2.0.12 소스 ZIP을 받으세요. [한글·영문 사용법](builder/README.md)을 제공합니다. 코드: [펌웨어 소스](source/), [빌드 도구 소스](builder/).
 
 
+![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
+
 한국어 | [English](README_EN.md)
 
 LG U+ MTTL-W01을 별도 백엔드 서버나 DNAT 없이 Wi-Fi 웹 대시보드와

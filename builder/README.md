@@ -1,5 +1,7 @@
 # MTTL-W01 Firmware Builder 1.0.0
 
+![MTTL-W01 Firmware Builder 1.0.0](../docs/builder-1.0.0.png)
+
 우상단 **English / 한국어** 버튼으로 언어를 변경합니다. 선택은 프로그램 폴더의 preferences.json에 저장합니다. 컴파일러·SDK의 원문 진단 로그와 Windows 파일 선택창의 기본 버튼 언어는 별개입니다.
 
 1. 빌드 프로그램 ZIP을 `C:\Temp\MTTL-Builder` 같은 짧은 영문 경로에 압축 해제합니다. EXE만 따로 옮기지 마십시오. 관리자 권한은 필요 없습니다.

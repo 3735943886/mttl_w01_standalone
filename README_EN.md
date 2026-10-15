@@ -5,6 +5,8 @@
 Download the Windows x64 builder and firmware 2.0.12 source ZIP from [Builder 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0). See the [English / Korean build guide](builder/README.md). Source code: [firmware](source/) and [builder](builder/).
 
 
+![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
+
 [한국어](README.md) | English
 
 Direct Wi-Fi web control and Home Assistant MQTT integration for the LG U+
