@@ -21,7 +21,7 @@ html=html.replace('<section id="device" class="active"','<section id="device"')
 html=html.replace('<section id="wifi" role=','<section id="wifi" class="active" role=')
 if options.ota_test:
     panel='''<section id="firmware" role="tabpanel" aria-labelledby="tab-firmware"><div class="panel">
-<h2 data-i18n="firmware">펌웨어</h2><div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.13</b></div>
+<h2 data-i18n="firmware">펌웨어</h2><div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.14</b></div>
 <div class="sensor"><span>Build ID</span><b id="current-build-id">—</b></div>
 <p id="ota-hint" class="muted"></p><form id="firmware-form">
 <label id="ota-file-label" for="firmware-picker"></label><input id="firmware-file" type="file" accept=".fwr" hidden>
@@ -58,8 +58,9 @@ sources=[('/', 'text/html; charset=utf-8', html.encode()),
 # Bundle editor with live controller to share gzip dictionary and avoid another
 # request/callback. Preview keeps its separate script for local-file use.
 html=html.replace('<script src="scheduler.js"></script>','')
+html=html.replace('<script src="timer.js"></script>','')
 sources[0]=('/', 'text/html; charset=utf-8', html.encode())
-sources[-1]=('/live.js','application/javascript; charset=utf-8',(ROOT/'standalone/ui/scheduler.js').read_bytes()+b'\n'+sources[-1][2])
+sources[-1]=('/live.js','application/javascript; charset=utf-8',(ROOT/'standalone/ui/scheduler.js').read_bytes()+b'\n'+(ROOT/'standalone/ui/timer.js').read_bytes()+b'\n'+sources[-1][2])
 if options.ota_test:
     sources.append(('/ota-live.js','application/javascript; charset=utf-8',(ROOT/'standalone/ui/ota-live.js').read_bytes()))
 # Preview-only translations do not belong in the RAM-resident device image.

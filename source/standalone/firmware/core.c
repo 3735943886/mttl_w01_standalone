@@ -8,6 +8,18 @@ static void clear_bytes(void *ptr, size_t size) {
 static int due(uint32_t now, uint32_t deadline) {
     return (int32_t)(now - deadline) >= 0;
 }
+unsigned mttl_timer_tick(mttl_timer_state *s,const uint16_t minutes[4],unsigned known,unsigned on,uint32_t now){
+ unsigned i,expired=0;
+ for(i=0;i<4;i++){unsigned bit=1u<<i;
+  if(!minutes[i]||!(known&bit)||!(on&bit)){s->running&=~bit;s->minutes[i]=minutes[i];continue;}
+  if(!(s->running&bit)||s->minutes[i]!=minutes[i]){s->deadline[i]=now+(uint32_t)minutes[i]*60000u;s->running|=bit;s->minutes[i]=minutes[i];}
+  if(due(now,s->deadline[i]))expired|=bit;
+ }return expired;
+}
+uint32_t mttl_timer_remaining(const mttl_timer_state *s,unsigned channel,uint32_t now){
+ if(channel>3||!(s->running&(1u<<channel))||due(now,s->deadline[channel]))return 0;
+ return (s->deadline[channel]-now+999u)/1000u;
+}
 
 void mttl_control_init(mttl_control *c, uint32_t pulse_ms) {
     clear_bytes(c, sizeof(*c));

@@ -10,6 +10,7 @@ typedef struct {
     uint16_t port;
     uint8_t language,mqtt_enabled;
     uint8_t button_lock; /* Bit 0..3: inhibit physical channel buttons only. */
+    uint16_t timer_minutes[4]; /* 0 unregistered, 1..1440 automatic OFF. */
     /* Device-owned checkpoint; excluded from web configuration encoding. */
     uint32_t energy_raw[4],energy_wh[4];
     uint8_t energy_valid;
@@ -17,6 +18,8 @@ typedef struct {
     mttl_protection_config protection;
     mttl_schedule_config schedule;
 } mttl_settings;
+/* Only settings affecting the broker session or Discovery require reconnect. */
+int mttl_settings_mqtt_changed(const mttl_settings *,const mttl_settings *);
 /* Versioned length-prefixed encoding, never raw C structure/padding. */
 #define MTTL_SETTINGS_BODY_MAX 1024
 void mttl_settings_default(mttl_settings *s);

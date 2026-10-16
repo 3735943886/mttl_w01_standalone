@@ -21,7 +21,7 @@ static void ota_redirect(struct httpd_conn *c){
  httpd_conn_close(c);
 }
 extern int mttl_httpd_stopped(void);
-static const char version[]="{\"version\":\"2.0.13\"}";
+static const char version[]="{\"version\":\"2.0.14\"}";
 static void response(struct httpd_conn *connection,const char *body,size_t length,char *type){
     if(httpd_response_write_header_start(connection,"200 OK",type,length)<0 ||
        httpd_response_write_header(connection,"Cache-Control","no-store")<0 ||
@@ -50,7 +50,8 @@ static void hex_ssid(const char *ssid,char hex[65]){unsigned i;static const char
 /* Largest reply: 16 scan entries (<2 KiB); device/config snapshots <=2 KiB. */
 /* HTTP_THREAD_SINGLE: configuration bytes are copied by config_reserve
  * before responding. The input and output never need separate storage. */
-static union {char json[1792];uint8_t settings[1024];} http_scratch;
+/* Each handler initializes its own bounded output/input before use. */
+static union {char json[1792];uint8_t settings[1024];} http_scratch __attribute__((section(".mttl.cache")));
 #define json http_scratch.json
 static int origin_ok(struct httpd_conn *c);
 static void control_page(struct httpd_conn *c){uint8_t body[2];size_t n=0;
@@ -130,7 +131,7 @@ cleanup:
 static void info(struct httpd_conn *c){send(c,version,sizeof(version)-1,"application/json");}
 #ifdef MTTL_OTA_TEST
 static void ota_status(struct httpd_conn *c){
-    uint32_t active=mttl_sdk_ota_probe();int n=snprintf(json,sizeof(json),"{\"version\":\"2.0.13\",\"build_id\":\"" MTTL_OTA_BUILD_ID "\",\"ota_ready\":%s,\"active_slot\":%lu,\"settings_persistent\":%s,\"restore_versions\":[\"1.0.66\",\"1.0.68\"]}",active?"true":"false",(unsigned long)active,mttl_sdk_settings_persistent()?"true":"false");
+    uint32_t active=mttl_sdk_ota_probe();int n=snprintf(json,sizeof(json),"{\"version\":\"2.0.14\",\"build_id\":\"" MTTL_OTA_BUILD_ID "\",\"ota_ready\":%s,\"active_slot\":%lu,\"settings_persistent\":%s,\"restore_versions\":[\"1.0.66\",\"1.0.68\"]}",active?"true":"false",(unsigned long)active,mttl_sdk_settings_persistent()?"true":"false");
     if(n>0&&(size_t)n<sizeof(json))send(c,json,n,"application/json");else{httpd_response_internal_server_error(c,0);httpd_conn_close(c);}
 }
 static int ota_access(struct httpd_conn *c){

@@ -113,7 +113,7 @@ static void relay_task(void *unused){mttl_output out={&relay_port,mttl_hardware_
   if(relay_control.count)do{
    mttl_control_tick(&relay_control,&out,(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS);
    watchdog_relay_at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;
-   taskENTER_CRITICAL();relay_known=relay_control.known_mask;relay_on=relay_control.on_mask;relay_fault=relay_control.fault;taskEXIT_CRITICAL();
+   taskENTER_CRITICAL();relay_known=relay_control.known_mask;relay_on=relay_control.on_mask;relay_fault=relay_control.fault;mttl_timer_tick(&device.timers,device.settings.timer_minutes,relay_known,relay_on,(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS);taskEXIT_CRITICAL();
    /* Blocking pulse adapter has already waited and released the coil.
     * Finalize immediately when due; do not add a task sleep between channels. */
    if(relay_control.active&&(int32_t)((uint32_t)xTaskGetTickCount()*portTICK_RATE_MS-relay_control.deadline)>=0)continue;
@@ -142,7 +142,8 @@ static mttl_mqtt_io mqtt_io;
 static char device_json[1536] __attribute__((section(".mttl.cache")));
 static char identity[13];
 static size_t device_size;
-static mttl_settings pending_config;
+/* Fully populated by config_reserve before config_ready; CPU-only staging. */
+static mttl_settings pending_config __attribute__((section(".mttl.cache")));
 static uint8_t config_ready;
 static uint8_t config_keep_password;
 static uint8_t ready,ap_ready,stop_phase;
@@ -155,6 +156,13 @@ static int control_enqueue(unsigned channel,unsigned on,int local){int ok=0;unsi
  * the relay task or allowing watchdog evaluation of this command. */
 watchdog_relay_at=control_queue[tail].at;relay_busy=1;if(channel==4)relay_desired=(relay_desired&~mask)|(on?mask:0);else if(on)relay_desired|=1u<<channel;else relay_desired&=~(1u<<channel);ok=1;}taskEXIT_CRITICAL();if(ok)xSemaphoreGive(relay_wake);return ok;}
 int mttl_sdk_control_request(unsigned channel,unsigned on){return control_enqueue(channel,on,0);}
+static __attribute__((noinline)) void timer_service(uint32_t now){
+ unsigned expired,i;taskENTER_CRITICAL();expired=mttl_timer_tick(&device.timers,device.settings.timer_minutes,relay_known,relay_on,now);
+ /* Do not flood the four-slot queue while an OFF is already in flight.
+  * Rejected admission stays due and retries on the next worker pass. */
+ if(!relay_busy&&!relay_fault&&!provision_requested)for(i=0;i<4;i++)if(expired&(1u<<i))(void)control_enqueue(i,0,1);
+ taskEXIT_CRITICAL();
+}
 /* Replace waiting ON commands with a priority ALL OFF; an active coil pulse
  * still finishes/release safely. No persistent lock or automatic re-enable. */
 static void protection_off(void){taskENTER_CRITICAL();if(relay_wake&&device.hardware.verified&&!relay_fault){control_head=0;control_pending=1;control_queue[0].channel=4;control_queue[0].on=0;control_queue[0].mask=15;control_queue[0].at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;watchdog_relay_at=control_queue[0].at;relay_busy=1;relay_desired=0;}taskEXIT_CRITICAL();if(relay_wake)xSemaphoreGive(relay_wake);}
@@ -274,6 +282,7 @@ static void worker(void *p){
         int scan_now=0,config_now;
         watchdog_worker_at=clock_ms(0);watchdog_worker_seen=1;
         taskENTER_CRITICAL();device.control.known_mask=relay_known;device.control.on_mask=relay_on;device.control.fault=relay_fault;taskEXIT_CRITICAL();
+        timer_service(clock_ms(0));
         /* Same MQTT socket owner, but bypass slow sensor/storage work while
          * relay completion is pending. Second step drains the state packet
          * queued by the first instead of leaving it until the next full loop. */
@@ -300,7 +309,8 @@ static void worker(void *p){
             /* Flash operations never run with scheduler/interrupts disabled. */
             if(mttl_settings_valid(&pending_config)&&mttl_sdk_settings_save(&pending_config)==1){
               if(memcmp(&device.settings.schedule,&pending_config.schedule,sizeof(pending_config.schedule)))schedule_state.primed=0;
-              taskENTER_CRITICAL();device.settings=pending_config;++device.revision;device.persistent=1;taskEXIT_CRITICAL();device.protection.current_count=device.protection.power_count=0;}
+              {int mqtt_changed=mttl_settings_mqtt_changed(&device.settings,&pending_config);
+              taskENTER_CRITICAL();device.settings=pending_config;mttl_timer_tick(&device.timers,device.settings.timer_minutes,relay_known,relay_on,clock_ms(0));if(mqtt_changed)++device.revision;device.persistent=1;taskEXIT_CRITICAL();}device.protection.current_count=device.protection.power_count=0;}
             storage_end();
             taskENTER_CRITICAL();wipe((char *)&pending_config,sizeof(pending_config));config_ready=config_occupied=0;taskEXIT_CRITICAL();
         }

@@ -13,6 +13,7 @@ typedef struct {
     int (*relay_request)(unsigned,unsigned); /* Optional external relay owner. */
     uint8_t mqtt_known,mqtt_on,mqtt_all,mqtt_was_online;
     mttl_protection_state protection;
+    mttl_timer_state timers;
 } mttl_device_app;
 /* Queued state is not yet transmitted. Keep the socket owner ahead of
  * slow meter/NOR work until channel and aggregate confirmations drain. */

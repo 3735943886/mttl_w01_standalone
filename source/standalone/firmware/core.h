@@ -10,6 +10,11 @@
 #define MTTL_ALL 4
 #define MTTL_FRAME_CAP 512
 #define MTTL_SCAN_CAP 16
+typedef struct {uint32_t deadline[4];uint16_t minutes[4];uint8_t running;} mttl_timer_state;
+/* Wrap-safe monotonic timers; due OFF remains asserted until confirmed OFF.
+ * No clock/NTP dependency, persistence of remaining time or dynamic allocation. */
+unsigned mttl_timer_tick(mttl_timer_state *,const uint16_t minutes[4],unsigned known,unsigned on,uint32_t now);
+uint32_t mttl_timer_remaining(const mttl_timer_state *,unsigned channel,uint32_t now);
 /* Single-worker cache. SDK callbacks must enqueue/copy under a separate
  * synchronization adapter, not race HTTP readers. No allocations or blocking. */
 typedef struct { char ssid[33]; int32_t rssi; uint32_t security; } mttl_access_point;

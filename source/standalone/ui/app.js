@@ -2,8 +2,10 @@
   'use strict';
   const byId=id=>document.getElementById(id),boot=Date.now(),events=[],states=[false,false,false,false];
   const PREF_KEY='mttl.preview.display.v1';
+  const timerEnds=[0,0,0,0];
+  function setChannel(i,on){if(on&&!states[i]&&preferences.timerMinutes[i])timerEnds[i]=Date.now()+preferences.timerMinutes[i]*60000;if(!on)timerEnds[i]=0;states[i]=on;}
   function validName(value){return typeof value==='string'&&value.trim().length>0&&new TextEncoder().encode(value.trim()).length<=64&&!/[\x00-\x1f\x7f]/.test(value);}
-  let preferences={language:'ko',deviceName:null,channelNames:[null,null,null,null],buttonLocks:[false,false,false,false]};
+  let preferences={language:'ko',deviceName:null,channelNames:[null,null,null,null],buttonLocks:[false,false,false,false],timerMinutes:[0,0,0,0]};
   try{
     const saved=JSON.parse(localStorage.getItem(PREF_KEY)||'null');
     if(saved&&typeof saved==='object'){
@@ -11,10 +13,14 @@
       if(validName(saved.deviceName))preferences.deviceName=saved.deviceName.trim();
       if(Array.isArray(saved.channelNames)&&saved.channelNames.length===4)preferences.channelNames=saved.channelNames.map(name=>validName(name)?name.trim():null);
       if(Array.isArray(saved.buttonLocks)&&saved.buttonLocks.length===4&&saved.buttonLocks.every(value=>typeof value==='boolean'))preferences.buttonLocks=saved.buttonLocks;
+      if(Array.isArray(saved.timerMinutes)&&saved.timerMinutes.length===4&&saved.timerMinutes.every(v=>Number.isInteger(v)&&v>=0&&v<=1440))preferences.timerMinutes=saved.timerMinutes;
     }
   }catch(error){/* Storage may be unavailable in a local-file browser. */}
   const t=(key,args={})=>MttlI18n.text(preferences.language,key,args);
-  const scheduleEditor=MttlSchedule.mount({language:()=>preferences.language,available:()=>true,save:async hex=>localStorage.setItem('mttl.preview.schedule',hex)});
+  const schedule=()=>MttlSchedule.decode(localStorage.getItem('mttl.preview.schedule')||MttlSchedule.encode(MttlSchedule.defaults()));
+  const scheduleEditor=MttlSchedule.mount({language:()=>preferences.language,available:()=>true,timers:()=>preferences.timerMinutes,save:async hex=>{MttlTimer.valid(preferences.timerMinutes,MttlSchedule.decode(hex));localStorage.setItem('mttl.preview.schedule',hex);timerEditor.translate();}});
+  const timerEditor=MttlTimer.mount({language:()=>preferences.language,available:()=>true,schedule,save:async minutes=>{MttlTimer.valid(minutes,schedule());minutes.forEach((m,i)=>{if(m!==preferences.timerMinutes[i])timerEnds[i]=m&&states[i]?Date.now()+m*60000:0;});preferences.timerMinutes=minutes;persist();scheduleEditor.translate();render();}});
+  timerEditor.load(preferences.timerMinutes);
   try{scheduleEditor.load(localStorage.getItem('mttl.preview.schedule')||MttlSchedule.encode(MttlSchedule.defaults()));}catch(_){scheduleEditor.load(MttlSchedule.encode(MttlSchedule.defaults()));}
   function persist(){try{localStorage.setItem(PREF_KEY,JSON.stringify(preferences));return true;}catch(error){return false;}}
   const statuses={'wifi-status':null,'mqtt-status':{key:'disabled'},'firmware-status':{key:'chooseFile'},'name-status':null};
@@ -30,7 +36,9 @@
   const deviceName=()=>preferences.deviceName||t('deviceDefault');
   const channelName=i=>preferences.channelNames[i]||t(i===0?'channelOneDefault':'channelDefault',{number:i+1});
   let connectedAt=new Date(),connectedSsid='SIMULATED_AP',signal=-43;
-  function time(){const locale=preferences.language==='en'?'en-US':'ko-KR';byId('clock').textContent=new Date().toLocaleString(locale);byId('connected').textContent=connectedAt.toLocaleString(locale);const s=Math.floor((Date.now()-boot)/1000);byId('uptime').textContent=t('duration',{days:Math.floor(s/86400),hours:Math.floor(s/3600)%24,minutes:Math.floor(s/60)%60,seconds:s%60});}
+  function time(){const locale=preferences.language==='en'?'en-US':'ko-KR';byId('clock').textContent=new Date().toLocaleString(locale);byId('connected').textContent=connectedAt.toLocaleString(locale);const s=Math.floor((Date.now()-boot)/1000);byId('uptime').textContent=t('duration',{days:Math.floor(s/86400),hours:Math.floor(s/3600)%24,minutes:Math.floor(s/60)%60,seconds:s%60});let changed=false;timerEnds.forEach((end,i)=>{if(end&&Date.now()>=end){setChannel(i,false);changed=true;}});if(changed)render();else showTimers();}
+  const timerLabels=[];
+  function showTimers(){const texts=timerLabels.map((node,i)=>{const s=timerEnds[i]?Math.max(0,Math.ceil((timerEnds[i]-Date.now())/1000)):preferences.timerMinutes[i]*60;const text=[Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':');node.textContent=text;return t('timer')+' '+text;});timerEditor.show(texts);}
   function renderNetwork(){byId('connected-ssid').textContent=connectedSsid||'—';byId('rssi').textContent=(signal===null?'—':signal)+' dBm';byId('online').textContent=t('online');}
   function render(){
     byId('device-name').textContent=deviceName();
@@ -45,9 +53,10 @@
       lock.setAttribute('title',hint);lock.setAttribute('aria-label',hint);lock.setAttribute('aria-pressed',String(locked));lock.addEventListener('click',()=>{preferences.buttonLocks[i]=!preferences.buttonLocks[i];persist();render();});
       header.append(edit,title,lock);card.append(header);
       [['power',on?'10.0 W':'0.0 W'],['channelMeter',(0.1+i*0.05).toFixed(3)+' kWh'],['current',on?'0.100 A':'0.000 A'],['temperature',(24+i).toFixed(1)+' °C']].forEach(([key,value])=>{const row=document.createElement('div');row.className='sensor';const label=document.createElement('span'),data=document.createElement('b');label.textContent=t(key);data.textContent=value;row.append(label,data);card.append(row);});
-      const button=document.createElement('button');button.className='switch';button.textContent=t(on?'turnOff':'turnOn');button.addEventListener('click',()=>{states[i]=!states[i];log('log_relay',{number:i+1,state:states[i]?'ON':'OFF'});render();});card.append(button);container.append(card);
+      const timerRow=document.createElement('div');timerRow.className='sensor';const timerLabel=document.createElement('span'),timer=document.createElement('b');timerLabel.textContent=t('timer');timerLabels[i]=timer;timerRow.append(timerLabel,timer);card.append(timerRow);
+      const button=document.createElement('button');button.className='switch';button.textContent=t(on?'turnOff':'turnOn');button.addEventListener('click',()=>{setChannel(i,!states[i]);log('log_relay',{number:i+1,state:states[i]?'ON':'OFF'});render();});card.append(button);container.append(card);
     });
-    const count=states.filter(Boolean).length;byId('total').textContent=(count*10).toFixed(1)+' W';byId('current').textContent=(count*0.1).toFixed(3)+' A';byId('all').textContent=count===4?'ON':count?t('partial'):'OFF';
+    showTimers();const count=states.filter(Boolean).length;byId('total').textContent=(count*10).toFixed(1)+' W';byId('current').textContent=(count*0.1).toFixed(3)+' A';byId('all').textContent=count===4?'ON':count?t('partial'):'OFF';
   }
   function editNames(channel=null){
     byId('device-name-input').value=deviceName();for(let i=0;i<4;i++)byId('channel-name-'+(i+1)).value=channelName(i);
@@ -65,8 +74,8 @@
     if(![device,...channels].every(validName)){status('name-status','nameInvalid',true);return;}
     preferences.deviceName=device;preferences.channelNames=channels;const stored=persist();render();status('name-status',stored?'namesSaved':'namesSession');log('log_names');
   });
-  byId('all-on').addEventListener('click',()=>{states.fill(true);log('log_allOn');render();});
-  byId('all-off').addEventListener('click',()=>{states.fill(false);log('log_allOff');render();});
+  byId('all-on').addEventListener('click',()=>{states.forEach((_,i)=>setChannel(i,true));log('log_allOn');render();});
+  byId('all-off').addEventListener('click',()=>{states.forEach((_,i)=>setChannel(i,false));log('log_allOff');render();});
   byId('hold').addEventListener('click',()=>{log('log_provision');status('wifi-status','apReady');tab('wifi');});
   byId('scan').addEventListener('click',()=>{byId('ssid').replaceChildren();['SIMULATED_AP','SIMULATED_BEDROOM'].forEach(name=>{const option=document.createElement('option');option.value=option.textContent=name;byId('ssid').append(option);});log('log_scan');});
   byId('wifi-form').addEventListener('submit',event=>{
@@ -101,8 +110,9 @@
   });
   function applyLanguage(){
     scheduleEditor.translate();
+    timerEditor.translate();
     document.documentElement.lang=preferences.language;document.title=t('title');byId('language').textContent=preferences.language==='ko'?'English':'Korean';
-    byId('current-firmware-version').textContent='2.0.13';
+    byId('current-firmware-version').textContent='2.0.14';
     for(const [attribute,target] of [['data-i18n',null],['data-i18n-placeholder','placeholder'],['data-i18n-aria','aria-label']])document.querySelectorAll('['+attribute+']').forEach(element=>{const text=t(element.getAttribute(attribute));if(target)element.setAttribute(target,text);else element.textContent=text;});
     for(let i=1;i<=4;i++)byId('channel-name-label-'+i).textContent=t('channelName',{number:i});
     render();renderNetwork();renderStatuses();renderFirmware();renderSelectedFile();renderLogs();time();

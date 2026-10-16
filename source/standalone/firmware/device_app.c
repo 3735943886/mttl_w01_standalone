@@ -10,7 +10,8 @@ int mttl_device_configure(mttl_device_app *d,const uint8_t *body,size_t size,con
     if(!mttl_settings_unpack(body,size,&candidate))goto done;
     mttl_settings_keep_energy(&candidate,&d->settings);
     if(io&&(!workspace||mttl_config_save(io,workspace,&candidate)!=1))goto done;
-    d->settings=candidate;d->persistent=io!=0;++d->revision;result=1;
+    if(mttl_settings_mqtt_changed(&d->settings,&candidate))++d->revision;
+    d->settings=candidate;d->persistent=io!=0;result=1;
 done:for(i=0;i<sizeof(candidate);i++)p[i]=0;return result;
 }
 int mttl_device_command(void *context,uint8_t channel,uint8_t on){mttl_device_app *d=context;if(!d||!d->hardware.verified||!d->hardware.write)return 0;if(d->relay_request)return d->relay_request(channel,on);return mttl_request(&d->control,channel,on);}
@@ -60,7 +61,7 @@ size_t mttl_device_status(const mttl_device_app *d,uint32_t now,char *out,size_t
     for(i=0;i<4;i++){if(!quote(d->settings.channel[i],name,sizeof(name)))return 0;sample(&d->samples.power[i],now,power);sample(&d->samples.meter[i],now,meter);sample(&d->samples.current[i],now,current);sample(&d->samples.temperature[i],now,temp);
         strcpy(on,(d->control.known_mask&(1u<<i))?((d->control.on_mask&(1u<<i))?"true":"false"):"null");
         n=snprintf(out+used,cap-used,"%s{\"name\":%s,\"on\":%s,\"locked\":%s,\"power_mw\":%s,\"meter_wh\":%s,\"current_ma\":%s,\"temp_dc\":%s}",i?",":"",name,on,(d->settings.button_lock&(1u<<i))?"true":"false",power,meter,current,temp);if(n<0||(size_t)n>=cap-used)return 0;used+=(size_t)n;}
-    n=snprintf(out+used,cap-used,"],\"protection\":{\"reason\":%u,\"error\":%u}}",(unsigned)d->protection.reason,(unsigned)d->protection.error_mask);return n>0&&(size_t)n<cap-used?used+(size_t)n:0;
+    n=snprintf(out+used,cap-used,"],\"protection\":{\"reason\":%u,\"error\":%u},\"timer_running\":%u,\"timer_end\":[%lu,%lu,%lu,%lu]}",(unsigned)d->protection.reason,(unsigned)d->protection.error_mask,(unsigned)d->timers.running,(unsigned long)d->timers.deadline[0],(unsigned long)d->timers.deadline[1],(unsigned long)d->timers.deadline[2],(unsigned long)d->timers.deadline[3]);return n>0&&(size_t)n<cap-used?used+(size_t)n:0;
 }
 size_t mttl_device_settings_json(const mttl_device_app *d,char *out,size_t cap){return mttl_settings_json(&d->settings,d->persistent,out,cap);}
 size_t mttl_settings_json(const mttl_settings *s,int persistent,char *out,size_t cap){
@@ -70,5 +71,5 @@ size_t mttl_settings_json(const mttl_settings *s,int persistent,char *out,size_t
     n=snprintf(out,cap,"{\"device\":%s,\"channels\":[%s,%s,%s,%s],\"language\":%u,\"broker\":%s,\"port\":%u,\"user\":%s,\"topic\":%s,\"enabled\":%s,\"wifi_password_set\":%s,\"mqtt_password_set\":%s,\"persistent\":%s,\"protection\":{\"enabled\":%u,\"temperature\":%u,\"current\":%u,\"power\":%u},\"schedule_hex\":\"",device,channels[0],channels[1],channels[2],channels[3],s->language,broker,s->port,user,topic,s->mqtt_enabled?"true":"false",s->wifi_password[0]?"true":"false",s->mqtt_password[0]?"true":"false",persistent?"true":"false",(unsigned)s->protection.enabled,(unsigned)s->protection.temperature_c,(unsigned)s->protection.current_ma,(unsigned)s->protection.power_w);
     if(n<0||(size_t)n+103>=cap)return 0;used=(size_t)n;
     {uint8_t bytes[50];static const char hex[]="0123456789abcdef";mttl_schedule_pack(&s->schedule,bytes);for(i=0;i<50;i++){out[used++]=hex[bytes[i]>>4];out[used++]=hex[bytes[i]&15];}}
-    n=snprintf(out+used,cap-used,"\",\"button_lock\":%u}",(unsigned)s->button_lock);return n>0&&(size_t)n<cap-used?used+(size_t)n:0;
+    n=snprintf(out+used,cap-used,"\",\"button_lock\":%u,\"timer_minutes\":[%u,%u,%u,%u]}",(unsigned)s->button_lock,(unsigned)s->timer_minutes[0],(unsigned)s->timer_minutes[1],(unsigned)s->timer_minutes[2],(unsigned)s->timer_minutes[3]);return n>0&&(size_t)n<cap-used?used+(size_t)n:0;
 }

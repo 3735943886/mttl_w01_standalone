@@ -14,6 +14,9 @@
   .header-tools,.device-heading,.device-title{display:flex;align-items:center;gap:10px}.device-heading{justify-content:space-between;margin-bottom:18px}.device-title{min-width:0}.device-heading h2{margin:0;overflow-wrap:anywhere}#language,#language:hover{background:transparent;color:#e2e8f0;border-color:#475569;font-size:12px}.name-editor{margin:20px 0;padding:18px;background:#f8fafc;border:1px solid var(--line);border-radius:12px}.name-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.name-grid .wide{grid-column:1/-1}.protection-slider input{flex:1;min-width:0;width:auto}.protection-slider b{min-width:80px;text-align:right;white-space:nowrap}.schedule-time{display:flex;align-items:center;width:max-content;border:1px solid var(--line);border-radius:10px;overflow:hidden}.schedule-time input,.schedule-time select{width:auto;border:0;border-radius:0;padding:10px}.schedule-time input{width:65px}
   @media(max-width:800px){.channels{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){header{padding:18px}main{padding:0 14px;margin-top:18px}.panel{padding:18px}.channel{padding:14px}.summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.summary div{padding:12px 5px}.summary b{font-size:16px}.sensor{font-size:12px}.meta{gap:8px 12px}nav{flex-wrap:nowrap;overflow:auto;width:100%}nav button{white-space:nowrap;padding:9px 12px}}
   [data-i18n="connection"]::after,[data-i18n="currentTime"]::after,[data-i18n="recentConnection"]::after,[data-i18n="uptime"]::after{content:":\00a0"}.channel-lock{font-size:16px;line-height:18px;padding:4px 7px}
+  #timer-form{max-width:none}#timer-editor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}#timer-editor>p,#timer-editor>button{grid-column:1/-1}#timer-editor>.name-editor{min-width:0;margin:0;padding:16px}#timer-editor .row{gap:8px;margin-top:8px}#timer-editor .row label{flex:1;min-width:0}#timer-editor .row input{width:100%!important}#timer-editor .row button{width:100%}
+  #timer-editor>button{justify-self:center;width:auto;min-width:140px}#timer-editor .row label{text-align:center}#timer-editor .row input{text-align:right}
+  @media(max-width:900px){#timer-editor{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){#timer-editor{grid-template-columns:1fr}}
 </style>
 <header><h1>MTTL-W01</h1><div class="header-tools"><span class="badge" data-i18n="simulation">PC 모의 화면</span><button id="language" type="button">English</button></div></header>
 <main>
@@ -24,7 +27,8 @@
     <button role="tab" aria-selected="false" aria-controls="mqtt" id="tab-mqtt" data-i18n="mqtt">HA · MQTT</button>
     <button role="tab" aria-selected="false" aria-controls="protection" id="tab-protection" data-i18n="protection">보호 설정</button>
     <button role="tab" aria-selected="false" aria-controls="scheduler" id="tab-scheduler" data-i18n="scheduler">스케줄러</button>
-    <button role="tab" aria-selected="false" aria-controls="firmware" id="tab-firmware" data-i18n="firmware">펌웨어 업데이트</button>
+    <button role="tab" aria-selected="false" aria-controls="timer" id="tab-timer" data-i18n="timer">타이머</button>
+    <button role="tab" aria-selected="false" aria-controls="firmware" id="tab-firmware" data-i18n="firmware">펌웨어</button>
     <button role="tab" aria-selected="false" aria-controls="logs" id="tab-logs" data-i18n="logs">로그</button>
   </nav>
   <section id="device" class="active" role="tabpanel" aria-labelledby="tab-device">
@@ -78,9 +82,10 @@
   <section id="scheduler" role="tabpanel" aria-labelledby="tab-scheduler">
     <div class="panel"><h2 data-i18n="scheduler">스케줄러</h2><form id="schedule-form"><div id="schedule-editor"></div><div id="schedule-status" class="status" role="status"></div></form></div>
   </section>
+  <section id="timer" role="tabpanel" aria-labelledby="tab-timer"><div class="panel"><h2 data-i18n="timer">타이머</h2><form id="timer-form"><div id="timer-editor"></div><div id="timer-status" class="status" role="status"></div></form></div></section>
   <section id="firmware" role="tabpanel" aria-labelledby="tab-firmware">
     <div class="panel"><h2 data-i18n="firmware">펌웨어</h2>
-      <div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.13</b></div>
+      <div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.14</b></div>
       <p class="muted" data-i18n="firmwareHint">현재: 독립 펌웨어 화면 초안 · 선택한 파일의 형식과 체크섬을 PC에서 검사합니다.</p>
       <form id="firmware-form">
         <label for="firmware-picker" data-i18n="firmwareFile">펌웨어 파일 (.fwr / Image2 .bin)</label><input id="firmware-file" type="file" accept=".fwr,.bin" hidden>
@@ -106,6 +111,7 @@
 </main>
 <script src="i18n.js"></script>
 <script src="scheduler.js"></script>
+<script src="timer.js"></script>
 <script src="firmware.js"></script>
 <script src="app.js"></script>
 </html>

@@ -2,13 +2,22 @@
 (function(){
   'use strict';
   const el=id=>document.getElementById(id),key='mttl.preview.display.v1';
-  let language='ko',preferences={},snapshot=null,deviceSnapshot=null,configuration=null,composing=false,wifiMessage='integrationPending',controlBusy=false;
+  let language='ko',preferences={},snapshot=null,deviceSnapshot=null,configuration=null,composing=false,wifiMessage=null,controlBusy=false;
   let events=null,eventConnected=false;
   let relaySnapshot=null;
   function applyRelay(){if(!relaySnapshot||!deviceSnapshot)return;deviceSnapshot.channels.forEach((c,i)=>{c.on=relaySnapshot.known&(1<<i)?!!(relaySnapshot.on&(1<<i)):null;});if(relaySnapshot.fault)deviceSnapshot.hardware_ready=false;}
   const pendingChannels=new Set();let controlTail=Promise.resolve();
   const optimistic=new Map();
   const channelNodes=[];
+  let statusAt=0;
+  function timerText(i){const minutes=configuration?.timer_minutes?.[i]||0;if(!minutes)return '00:00:00';
+    if(!snapshot||!deviceSnapshot||Date.now()-statusAt>45000)return '--:--:--';
+    if(!(deviceSnapshot.timer_running&(1<<i))||deviceSnapshot.channels[i]?.on===false)return [Math.floor(minutes/60),minutes%60,0].map(v=>String(v).padStart(2,'0')).join(':');
+    const now=(snapshot.uptime_ms+Date.now()-statusAt)>>>0,left=Math.max(0,(deviceSnapshot.timer_end[i]-now)|0),s=Math.ceil(left/1000);
+    return [Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':');
+  }
+  function drawTimers(){channelNodes.forEach((n,i)=>{n.timerLabel.textContent=t('timer');n.timer.textContent=timerText(i);});timerEditor.show(Array.from({length:4},(_,i)=>t('timer')+' '+timerText(i)));}
+  function timerClock(){drawTimers();setTimeout(timerClock,999);}
   const lockPending=new Set();let lockTail=Promise.resolve();
   async function toggleLock(i){
     if(lockPending.has(i)||!configuration)return;
@@ -18,12 +27,8 @@
       const fresh=await request('/api/config');
       const desired=(fresh.button_lock||0)^(1<<i);
       await storeConfiguration({...fresh,button_lock:desired});
-      const actual=await request('/api/config');
-      configuration=actual;
-      if(actual.button_lock!==desired)throw Error('Lock save not confirmed');
-      deviceSnapshot=await request('/api/device');applyRelay();
       logEvent('물리 버튼 잠금 설정을 저장했습니다.','Physical button lock saved.');
-    }catch(_){configuration=null;logEvent('잠금 설정 저장 실패 · 다시 확인하세요.','Lock save failed; check the device state.');}
+    }catch(_){logEvent('잠금 설정 저장 여부를 확인하지 못했습니다. 기기 상태를 다시 확인하세요.','Lock save could not be confirmed; check the device state.');}
     finally{lockPending.delete(i);release();render();}
   }
   // Bounded browser-session diagnostics, never configuration or credentials.
@@ -59,14 +64,14 @@
   function settingsBody(c,password=''){
     const port=Number(c.port);if(!Number.isInteger(port)||port<1||port>65535)throw Error('Port');
     const fields=[c.device,...c.channels,'','',c.broker,c.user,password,c.topic];if(fields.length!==11)throw Error('Channels');
-    const bytes=[6,c.language,c.enabled?1:0,port&255,port>>>8];const limits=[64,64,64,64,64,32,64,253,64,64,64];
+    const bytes=[7,c.language,c.enabled?1:0,port&255,port>>>8];const limits=[64,64,64,64,64,32,64,253,64,64,64];
     fields.forEach((field,i)=>{const data=new TextEncoder().encode(field||'');if(data.length>limits[i])throw Error('Length');bytes.push(data.length,...data);});
     const p=c.protection||{enabled:7,temperature:90,current:16000,power:3000};
     if(!Number.isInteger(p.enabled)||p.enabled<0||p.enabled>7||!Number.isInteger(p.temperature)||p.temperature<50||p.temperature>90||!Number.isInteger(p.current)||p.current<1000||p.current>16000||!Number.isInteger(p.power)||p.power<100||p.power>3000)throw Error('Protection');
     bytes.push(p.enabled,p.temperature&255,p.temperature>>>8,p.current&255,p.current>>>8,p.power&255,p.power>>>8);
-    const hex=c.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults());MttlSchedule.decode(hex);bytes.push(...hex.match(/../g).map(x=>parseInt(x,16)));const locks=c.button_lock||0;if(!Number.isInteger(locks)||locks<0||locks>15)throw Error('Lock');bytes.push(locks);return Uint8Array.from(bytes);
+    const hex=c.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults());MttlSchedule.decode(hex);bytes.push(...hex.match(/../g).map(x=>parseInt(x,16)));const locks=c.button_lock||0;if(!Number.isInteger(locks)||locks<0||locks>15)throw Error('Lock');bytes.push(locks);const timers=c.timer_minutes||[0,0,0,0];MttlTimer.valid(timers,MttlSchedule.decode(hex));timers.forEach(m=>bytes.push(m&255,m>>>8));return Uint8Array.from(bytes);
   }
-  async function storeConfiguration(c,password='',keep=true){if(![2,5].includes(snapshot?.state))throw Error('Not ready');const body=settingsBody(c,password);try{await request('/api/config',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-MTTL-Keep-Password':keep?'1':'0'},body});for(let n=0;n<12;n++){await new Promise(resolve=>setTimeout(resolve,250));const saved=await request('/api/config');if(saved.persistent&&saved.device===c.device&&JSON.stringify(saved.channels)===JSON.stringify(c.channels)&&saved.language===c.language&&saved.broker===c.broker&&saved.port===c.port&&saved.user===c.user&&saved.enabled===c.enabled&&(!c.schedule_hex||saved.schedule_hex===c.schedule_hex)&&(!c.protection||['enabled','temperature','current','power'].every(k=>saved.protection?.[k]===c.protection[k]))){configuration=saved;deviceSnapshot=null;return true;}}throw Error('Flash save not confirmed');}finally{body.fill(0);}}
+async function storeConfiguration(c,password='',keep=true){if(![2,5].includes(snapshot?.state))throw Error('Not ready');const body=settingsBody(c,password);try{try{await request('/api/config',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-MTTL-Keep-Password':keep?'1':'0'},body});}catch(_){/* A lost POST response does not prove the write failed. Never repost. */}for(let n=0;n<12;n++){await new Promise(resolve=>setTimeout(resolve,250));let saved;try{saved=await request('/api/config');}catch(_){continue;}if(saved.persistent&&(saved.button_lock||0)===(c.button_lock||0)&&saved.device===c.device&&JSON.stringify(saved.channels)===JSON.stringify(c.channels)&&saved.language===c.language&&(!c.timer_minutes||JSON.stringify(saved.timer_minutes)===JSON.stringify(c.timer_minutes))&&saved.broker===c.broker&&saved.port===c.port&&saved.user===c.user&&saved.enabled===c.enabled&&(!c.schedule_hex||saved.schedule_hex===c.schedule_hex)&&(!c.protection||['enabled','temperature','current','power'].every(k=>saved.protection?.[k]===c.protection[k]))){configuration=saved;return true;}}throw Error('Flash save not confirmed');}finally{body.fill(0);}}
   function loadProtection(){const p=configuration?.protection||{enabled:7,temperature:90,current:16000,power:3000};['temperature','current','power'].forEach((k,i)=>{el('protect-'+k).value=String(k==='current'?p[k]/1000:p[k]);el('protect-'+k+'-enabled').checked=!!(p.enabled&(1<<i));});protectionValues();}
   function protectionValues(){['temperature','current','power'].forEach(k=>{el('protect-'+k+'-value').textContent=(k==='current'?Number(el('protect-'+k).value).toFixed(1):el('protect-'+k).value)+' '+({temperature:'°C',current:'A',power:'W'}[k]);});}
   function hexText(hex){if(typeof hex!=='string'||hex.length>64||!/^(?:[0-9a-f]{2})*$/.test(hex))return '';return new TextDecoder().decode(Uint8Array.from(hex.match(/../g)||[],x=>parseInt(x,16)));}
@@ -77,6 +82,7 @@
   function edit(i=-1){el('device-name-input').value=name(-1);for(let n=0;n<4;n++)el('channel-name-'+(n+1)).value=name(n);el('name-editor').hidden=false;el(i<0?'device-name-input':'channel-name-'+(i+1)).focus();}
   function render(){
     scheduleEditor.ready();
+    timerEditor.ready();
     observe();
     el('protection-apply').disabled=!configuration||![2,5].includes(snapshot?.state)||protectionSaving;
     {const p=deviceSnapshot?.protection,names=language==='en'?['Temperature','Current','Power']:['온도','전류','전력'];const items=bits=>names.filter((_,i)=>bits&(1<<i)).join(', ');el('protection-state').textContent=p?((language==='en'?'Last trip: ':'최근 차단: ')+(p.reason?items(p.reason):(language==='en'?'None':'없음'))+' · '+(language==='en'?'Sensor errors: ':'센서 오류: ')+(p.error?items(p.error):(language==='en'?'None':'없음'))):t('apiUnavailable');}
@@ -93,9 +99,10 @@
         const row=document.createElement('div');row.className='sensor';const text=document.createElement('span'),value=document.createElement('b');text.textContent=t(label);value.textContent=reading(deviceSnapshot?.channels?.[i]?.[field],scale,unit);row.append(text,value);card.append(row);
         sensors.push({text,value,label,unit,field,scale});
       }
+      const timerRow=document.createElement('div');timerRow.className='sensor';const timerLabel=document.createElement('span'),timer=document.createElement('b');timerRow.setAttribute('aria-live','off');timerRow.append(timerLabel,timer);card.append(timerRow);
       const button=document.createElement('button');button.className='switch';button.onclick=()=>{const on=optimistic.has(i)?optimistic.get(i):deviceSnapshot?.channels?.[i]?.on;return control(i,on===true?0:1);};card.append(button);el('channels').append(card);
       const lock=document.createElement('button');lock.className='edit-name channel-lock';lock.onclick=()=>toggleLock(i);header.append(lock);
-      channelNodes[i]={title,pencil,button,sensors,lock};
+      channelNodes[i]={title,pencil,button,sensors,lock,timer,timerLabel};
       }
       const node=channelNodes[i];node.title.textContent=name(i);node.pencil.setAttribute('aria-label',t('editChannel',{number:i+1}));
       const locked=!!((configuration?.button_lock||0)&(1<<i));node.lock.textContent=locked?'🔒':'🔓';node.lock.title=language==='en'?(locked?'Locked: physical button disabled':'Unlocked: physical button enabled'):(locked?'잠김: 물리 버튼 비활성화':'잠금 해제: 물리 버튼 사용');node.lock.setAttribute('aria-label',node.lock.title);node.lock.setAttribute('aria-pressed',String(locked));node.lock.disabled=lockPending.has(i)||!configuration||![2,5].includes(snapshot?.state);
@@ -104,6 +111,7 @@
       const on=optimistic.has(i)?optimistic.get(i):deviceSnapshot?.channels?.[i]?.on,value=on===true?'ON':on===false?'OFF':(language==='en'?'Turn on':'켜기');if(node.button.textContent!==value)node.button.textContent=value;
       const style=on===true?'switch is-on':'switch';if(node.button.className!==style)node.button.className=style;
     }
+    drawTimers();
     const states=Array.from({length:4},(_,i)=>optimistic.has(i)?optimistic.get(i):deviceSnapshot?.channels?.[i]?.on);
     const all=snapshot?.state===5&&states.every(on=>typeof on==='boolean')?(states.every(Boolean)?'ON':states.some(Boolean)?'PARTIAL':'OFF'):'—';
     const values=[reading(deviceSnapshot?.power_mw,1000,'W'),reading(deviceSnapshot?.meter_wh,1000,'kWh'),reading(deviceSnapshot?.voltage_dv,10,'V'),reading(deviceSnapshot?.current_ma,1000,'A'),all];document.querySelectorAll('.summary b').forEach((node,i)=>node.textContent=values[i]);
@@ -114,16 +122,17 @@
     el('connected-ssid').textContent=snapshot?hexText(snapshot.ssid_hex)||'—':'—';
     el('rssi').textContent=(snapshot&&Number.isInteger(snapshot.rssi)?snapshot.rssi:'—')+' dBm';
     {const s=Math.floor((snapshot?.uptime_ms||0)/1000);el('uptime').textContent=snapshot?t('duration',{days:Math.floor(s/86400),hours:Math.floor(s/3600)%24,minutes:Math.floor(s/60)%60,seconds:s%60}):'—';}
-    el('wifi-status').textContent=t(wifiMessage);
+    el('wifi-status').textContent=t(wifiMessage||('netState'+(snapshot?.state??0)));
     el('mqtt-status').textContent=t('netState'+([0,1,3,3,3,5,6][deviceSnapshot?.mqtt_state]??0));
   }
   function translate(){
     scheduleEditor.translate();
+    timerEditor.translate();
     document.documentElement.lang=language;el('language').textContent=language==='ko'?'English':'Korean';
     document.title='MTTL-W01';for(let i=1;i<=4;i++)el('channel-name-label-'+i).textContent=t('channelName',{number:i});
     for(const [attr,target] of [['data-i18n',null],['data-i18n-placeholder','placeholder'],['data-i18n-aria','aria-label']])document.querySelectorAll('['+attr+']').forEach(n=>target?n.setAttribute(target,t(n.getAttribute(attr))):n.textContent=t(n.getAttribute(attr)));
     el('scan').textContent=t('realScan');document.querySelector('#wifi-form button.primary').textContent=t('realConnect');
-    el('current-firmware-version').textContent='2.0.13';el('firmware-status').textContent=t('integrationPending');el('mqtt-status').textContent=t('integrationPending');el('firmware-selected').textContent=t('noSelectedFile');
+    el('current-firmware-version').textContent='2.0.14';el('firmware-status').textContent=t('integrationPending');el('mqtt-status').textContent=t('integrationPending');el('firmware-selected').textContent=t('noSelectedFile');
     document.querySelector('#mqtt-form button.primary').textContent=language==='en'?'Save to device':'기기에 저장';
     renderLog();render();
   }
@@ -155,7 +164,9 @@
   }
   el('all-on').onclick=()=>control(4,1);el('all-off').onclick=()=>control(4,0);
   let protectionSaving=false;
-  const scheduleEditor=MttlSchedule.mount({language:()=>language,available:()=>!!configuration&&[2,5].includes(snapshot?.state),save:hex=>storeConfiguration({...configuration,schedule_hex:hex})});
+  const scheduleEditor=MttlSchedule.mount({language:()=>language,available:()=>!!configuration&&[2,5].includes(snapshot?.state),timers:()=>configuration?.timer_minutes||[0,0,0,0],save:async hex=>{const fresh=await request('/api/config');MttlTimer.valid(fresh.timer_minutes||[0,0,0,0],MttlSchedule.decode(hex));await storeConfiguration({...fresh,schedule_hex:hex});timerEditor.load(configuration.timer_minutes);}});
+const timerEditor=MttlTimer.mount({language:()=>language,available:()=>!!configuration&&[2,5].includes(snapshot?.state),schedule:()=>MttlSchedule.decode(configuration?.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults())),save:async minutes=>{const fresh=await request('/api/config');MttlTimer.valid(minutes,MttlSchedule.decode(fresh.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults())));await storeConfiguration({...fresh,timer_minutes:minutes});scheduleEditor.translate();drawTimers();}});
+  setTimeout(timerClock,999);
   ['temperature','current','power'].forEach(k=>el('protect-'+k).oninput=protectionValues);
   el('protection-form').onsubmit=async event=>{event.preventDefault();if(!configuration||protectionSaving)return;
     const p={enabled:0,temperature:Number(el('protect-temperature').value),current:Math.round(Number(el('protect-current').value)*1000),power:Number(el('protect-power').value)};
@@ -178,7 +189,7 @@
   el('wifi-form').onsubmit=async event=>{event.preventDefault();const ssid=el('ssid').value,password=el('wifi-password').value;el('wifi-password').value='';if(!ssid||new TextEncoder().encode(ssid).length>32){wifiMessage='ssidInvalid';render();return;}
     try{await request('/api/wifi',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({ssid,password}).toString()});wifiMessage='connectAccepted';}catch(_){wifiMessage='apiUnavailable';}render();
   };
-  async function poll(){try{const result=await request('/api/status');if(!Number.isInteger(result.state)||result.state<0||result.state>6||!Number.isInteger(result.uptime_ms))throw Error('State');snapshot=result;}catch(_){snapshot=null;if(!controlBusy)deviceSnapshot=null;}if(snapshot){startEvents();if(!controlBusy&&!eventConnected){try{const d=await request('/api/device');if(!Array.isArray(d.channels)||d.channels.length!==4)throw Error('Device');if(!controlBusy&&!eventConnected)deviceSnapshot=d;}catch(_){if(!controlBusy)deviceSnapshot=null;}}if(!configuration){try{const c=await request('/api/config');if(!Array.isArray(c.channels)||c.channels.length!==4||typeof c.broker!=='string')throw Error('Config');configuration=c;el('broker').value=c.broker;el('port').value=c.port;el('user').value=c.user;el('enabled').checked=c.enabled;loadProtection();scheduleEditor.load(c.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults()));}catch(_){configuration=null;}}}document.querySelectorAll('#mqtt-form input,#mqtt-form button').forEach(node=>node.disabled=!configuration||![2,5].includes(snapshot?.state));render();setTimeout(poll,eventConnected?20000:1000);}
+  async function poll(){try{const result=await request('/api/status');if(!Number.isInteger(result.state)||result.state<0||result.state>6||!Number.isInteger(result.uptime_ms))throw Error('State');snapshot=result;statusAt=Date.now();}catch(_){snapshot=null;if(!controlBusy)deviceSnapshot=null;}if(snapshot){startEvents();if(!controlBusy&&!eventConnected){try{const d=await request('/api/device');if(!Array.isArray(d.channels)||d.channels.length!==4)throw Error('Device');if(!controlBusy&&!eventConnected)deviceSnapshot=d;}catch(_){if(!controlBusy)deviceSnapshot=null;}}if(!configuration){try{const c=await request('/api/config');if(!Array.isArray(c.channels)||c.channels.length!==4||typeof c.broker!=='string')throw Error('Config');configuration=c;el('broker').value=c.broker;el('port').value=c.port;el('user').value=c.user;el('enabled').checked=c.enabled;loadProtection();timerEditor.load(c.timer_minutes);scheduleEditor.load(c.schedule_hex||MttlSchedule.encode(MttlSchedule.defaults()));}catch(_){configuration=null;}}}document.querySelectorAll('#mqtt-form input,#mqtt-form button').forEach(node=>node.disabled=!configuration||![2,5].includes(snapshot?.state));render();setTimeout(poll,eventConnected?20000:1000);}
   selectTab('wifi');translate();
   const initialPoll=poll;
   poll=async function(){await initialPoll();if(initialTabPending&&snapshot){selectTab(typeof location!=='undefined'&&location.hash==='#firmware'?'firmware':snapshot.state===5?'device':'wifi');initialTabPending=false;}};

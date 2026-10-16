@@ -6,7 +6,7 @@ Project-authored code is available under the [MIT License](LICENSE). Third-party
 
 ## Firmware Builder 1.0.0 and source
 
-[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.13 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.13)
+[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.14 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.14)
 
 [Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
 
@@ -26,11 +26,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ### Firmware download
 
-**2.0.13 / build `545c2b5814c977fc` · October 16, 2026**
+**2.0.14 / build `bde584ccbe78cbce` · October 17, 2026**
 
-[Download comMTTL-W01_2.0.13.fwr](firmware/comMTTL-W01_2.0.13.fwr)
+[Download comMTTL-W01_2.0.14.fwr](firmware/comMTTL-W01_2.0.14.fwr)
 
-SHA-256: `fc2a2098a02c1f4b91d3e0c201b4e3880ed0f3c1c8809488df6d3b7781f94ea7`
+SHA-256: `d156330522b931bfd8c3efbc2a71ba5e6cfb759bdd2e462a7154fd4e67d36fb1`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -70,7 +70,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.13.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.0.14.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -190,7 +190,24 @@ Use 🔓/🔒 at the top right of each channel card. Locks apply only to physica
 
 Web/HA individual and all-channel ON/OFF, schedules and protection remain functional while locked. Locks persist across reboot and OTA. The existing ten-second main-button Wi-Fi setup action and associated energy reset remain unchanged.
 
+## Timers
+
+Set each channel to 1 minute–24 hours in the Timer tab and select **Save to device**. Save zero hours and minutes to remove a timer. A channel may belong to either timers or schedules, not both.
+
+OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart it. Changing a running timer's duration starts the new full duration. Channels restored ON after reboot also restart the full duration; remaining time is not persisted. Expiry turns the channel OFF regardless of its physical-button lock.
+
 ## Version History
+
+### 2.0.14 — October 17, 2026
+
+- Per-channel automatic OFF timers: 1 minute–24 hours, starting on OFF→ON; OFF cancels and the next ON starts a full duration
+- Timers and schedules cannot share a channel. ALL schedules occupy every channel; disabled schedules still reserve their targets until deleted
+- Settings persist in flash. Channels restored ON after reboot restart the full configured duration
+- Dedicated Timer tab and fixed HH:MM:SS timer rows on every channel: configured duration while idle, remaining time while running
+- Improved lock-save confirmation under intermittent communication failures; removed unrelated post-save device queries
+- Avoid unnecessary MQTT reconnects when changing locks, timers, schedules or protection settings
+- Wi-Fi setup initially displays the actual connection state instead of Not connected (#10)
+- Timer behavior and fixes confirmed by the user on hardware
 
 ### 2.0.13 — October 16, 2026
 

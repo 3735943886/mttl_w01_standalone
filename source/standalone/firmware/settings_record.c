@@ -7,6 +7,9 @@ static uint32_t record_crc(const uint8_t *slot,size_t size){return ~crc_update(c
 #define RELAY_OFFSET 1600
 #define SCHEDULE_OFFSET 1640
 #define LOCK_OFFSET 1712
+#define TIMER_OFFSET 1736
+static uint32_t timer_crc(const uint8_t *s){return ~crc_update(crc_update(0xffffffffu,s,12),s+TIMER_OFFSET,12);}
+static int timer_present(const uint8_t *s){return s[TIMER_OFFSET]=='T'&&s[TIMER_OFFSET+1]=='M'&&s[TIMER_OFFSET+2]=='0'&&s[TIMER_OFFSET+3]=='1';}
 static uint32_t lock_crc(const uint8_t *s){return ~crc_update(crc_update(0xffffffffu,s,12),s+LOCK_OFFSET,5);}
 static int lock_present(const uint8_t *s){return s[LOCK_OFFSET]=='L'&&s[LOCK_OFFSET+1]=='K'&&s[LOCK_OFFSET+2]=='0'&&s[LOCK_OFFSET+3]=='1';}
 static uint32_t schedule_crc(const uint8_t *s){return ~crc_update(crc_update(0xffffffffu,s,12),s+SCHEDULE_OFFSET,54);}
@@ -16,13 +19,14 @@ static int relay_present(const uint8_t *s){return s[RELAY_OFFSET]=='R'&&s[RELAY_
 static uint32_t energy_crc(const uint8_t *slot){return ~crc_update(crc_update(0xffffffffu,slot,12),slot+ENERGY_OFFSET,37);}
 static int energy_present(const uint8_t *slot){return slot[ENERGY_OFFSET]=='E'&&slot[ENERGY_OFFSET+1]=='N'&&slot[ENERGY_OFFSET+2]=='0'&&slot[ENERGY_OFFSET+3]=='1';}
 int mttl_settings_encode(uint8_t *slot,const uint8_t *body,size_t size,uint32_t sequence){
-    size_t i,n;const uint8_t *energy=0,*relay=0,*schedule=0,*lock=0;if(!slot||!body||!size||size>MTTL_SETTINGS_SLOT-17)return 0;
+    size_t i,n;const uint8_t *energy=0,*relay=0,*schedule=0,*lock=0,*timer=0;if(!slot||!body||!size||size>MTTL_SETTINGS_SLOT-17)return 0;
     /* The config codec's bounded envelope is transformed only when its shape
      * is exact. Ordinary/unknown record bodies keep their original encoding. */
-    if(size>=41&&size<=1024&&(body[0]==2||body[0]==3)){n=(size_t)body[1]|((size_t)body[2]<<8);if(n==size-(body[0]==3?38:36)&&(body[3]==1||body[3]==4||body[3]==5||body[3]==6)){energy=body+3+n;if(body[0]==3)relay=body+n+36;body+=3;size=n;}}
+    if(size>=41&&size<=1024&&(body[0]==2||body[0]==3)){n=(size_t)body[1]|((size_t)body[2]<<8);if(n==size-(body[0]==3?38:36)&&(body[3]==1||body[3]==4||body[3]==5||body[3]==6||body[3]==7)){energy=body+3+n;if(body[0]==3)relay=body+n+36;body+=3;size=n;}}
     /* Preserve a v4 physical base readable by 2.0.8-2.0.10. Scheduler gets
      * its own sequence-bound CRC sidecar in the same atomic record. */
-    if(size>=74&&size<=1024&&body[0]==6){lock=body+size-1;size--;}
+    if(size>=82&&size<=1024&&body[0]==7){timer=body+size-8;size-=8;}
+    if(size>=74&&size<=1024&&(body[0]==6||timer)){lock=body+size-1;size--;}
     if(size>=73&&size<=1024&&(body[0]==5||lock)){schedule=body+size-50;size-=50;}
     for(i=0;i<MTTL_SETTINGS_SLOT;i++)slot[i]=255;
     slot[0]='M';slot[1]='T';slot[2]='0';slot[3]='2';put32(slot+4,sequence);put32(slot+8,(uint32_t)size);
@@ -34,6 +38,7 @@ int mttl_settings_encode(uint8_t *slot,const uint8_t *body,size_t size,uint32_t 
     if(relay){slot[RELAY_OFFSET]='R';slot[RELAY_OFFSET+1]='L';slot[RELAY_OFFSET+2]='0';slot[RELAY_OFFSET+3]='1';slot[RELAY_OFFSET+4]=relay[0];slot[RELAY_OFFSET+5]=relay[1];put32(slot+RELAY_OFFSET+6,relay_crc(slot));}
     if(schedule){slot[SCHEDULE_OFFSET]='S';slot[SCHEDULE_OFFSET+1]='C';slot[SCHEDULE_OFFSET+2]='0';slot[SCHEDULE_OFFSET+3]='1';for(i=0;i<50;i++)slot[SCHEDULE_OFFSET+4+i]=schedule[i];put32(slot+SCHEDULE_OFFSET+54,schedule_crc(slot));}
     if(lock){slot[LOCK_OFFSET]='L';slot[LOCK_OFFSET+1]='K';slot[LOCK_OFFSET+2]='0';slot[LOCK_OFFSET+3]='1';slot[LOCK_OFFSET+4]=*lock;put32(slot+LOCK_OFFSET+5,lock_crc(slot));}
+    if(timer){slot[TIMER_OFFSET]='T';slot[TIMER_OFFSET+1]='M';slot[TIMER_OFFSET+2]='0';slot[TIMER_OFFSET+3]='1';for(i=0;i<8;i++)slot[TIMER_OFFSET+4+i]=timer[i];put32(slot+TIMER_OFFSET+12,timer_crc(slot));}
     /* Final commit is deliberately left erased. Storage driver must program
      * it only after reading back and verifying the staged record. */
     return 1;
@@ -51,16 +56,19 @@ int mttl_settings_validate(const uint8_t *slot,uint32_t *sequence,size_t *size){
       if(!blank&&(!schedule_present(slot)||slot[16]!=4||get32(slot+SCHEDULE_OFFSET+54)!=schedule_crc(slot)))return 0;}
     if(n<=1024){unsigned i;int blank=1;for(i=0;i<9;i++)if(slot[LOCK_OFFSET+i]!=255)blank=0;
       if(!blank&&(!lock_present(slot)||!schedule_present(slot)||slot[LOCK_OFFSET+4]>15||get32(slot+LOCK_OFFSET+5)!=lock_crc(slot)))return 0;}
+    if(n<=1024){unsigned i;int blank=1;for(i=0;i<16;i++)if(slot[TIMER_OFFSET+i]!=255)blank=0;
+      if(!blank&&(!timer_present(slot)||!lock_present(slot)||get32(slot+TIMER_OFFSET+12)!=timer_crc(slot)))return 0;}
     *sequence=get32(slot+4);*size=n;return 1;
 }
 int mttl_settings_extract(const uint8_t *slot,uint8_t *out,size_t cap,size_t *size){
- uint32_t sequence;size_t n,i,base,extra;int extended,scheduled,locked;
+ uint32_t sequence;size_t n,i,base,extra;int extended,scheduled,locked,timed;
  if(!out||!size||!mttl_settings_validate(slot,&sequence,&n))return 0;
- extended=n<=1024&&energy_present(slot);scheduled=n<=1024&&schedule_present(slot);locked=n<=1024&&lock_present(slot);extra=(scheduled?50:0)+(locked?1:0);
+ extended=n<=1024&&energy_present(slot);scheduled=n<=1024&&schedule_present(slot);locked=n<=1024&&lock_present(slot);timed=n<=1024&&timer_present(slot);extra=(scheduled?50:0)+(locked?1:0)+(timed?8:0);
  if(n+extra+(extended?(relay_present(slot)?38:36):0)>cap)return 0;
  base=extended?3:0;for(i=0;i<n;i++)out[base+i]=slot[16+i];
  if(scheduled){out[base]=5;for(i=0;i<50;i++)out[base+n+i]=slot[SCHEDULE_OFFSET+4+i];n+=50;}
  if(locked){out[base]=6;out[base+n++]=slot[LOCK_OFFSET+4];}
+ if(timed){out[base]=7;for(i=0;i<8;i++)out[base+n++]=slot[TIMER_OFFSET+4+i];}
  if(extended){out[0]=relay_present(slot)?3:2;out[1]=(uint8_t)n;out[2]=(uint8_t)(n>>8);for(i=0;i<33;i++)out[3+n+i]=slot[ENERGY_OFFSET+4+i];*size=n+36;if(relay_present(slot)){out[n+36]=slot[RELAY_OFFSET+4];out[n+37]=slot[RELAY_OFFSET+5];*size=n+38;}}
  else *size=n;return 1;
 }

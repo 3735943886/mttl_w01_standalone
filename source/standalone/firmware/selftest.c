@@ -349,11 +349,33 @@ uint32_t mttl_selftest(void) {
      check(b.protection.temperature_c==65&&b.protection.current_ma==2300&&b.protection.power_w==750&&b.protection.enabled==5);
      check(b.relay_known==15&&b.relay_on==2&&b.energy_wh[0]==1234);
      n=mttl_settings_pack(&a,bytes,sizeof(bytes));bytes[0]=1;
-     check(mttl_settings_unpack(bytes,n-58,&b)&&b.protection.enabled==7&&b.protection.temperature_c==90&&b.protection.current_ma==16000&&b.protection.power_w==3000&&!b.button_lock);
-     bytes[0]=6;bytes[n-58]=8;check(!mttl_settings_unpack(bytes,n,&b));
+     check(mttl_settings_unpack(bytes,n-66,&b)&&b.protection.enabled==7&&b.protection.temperature_c==90&&b.protection.current_ma==16000&&b.protection.power_w==3000&&!b.button_lock);
+     bytes[0]=7;bytes[n-66]=8;check(!mttl_settings_unpack(bytes,n,&b));
      a.button_lock=5;n=mttl_settings_pack(&a,bytes,sizeof(bytes));check(n&&mttl_settings_unpack(bytes,n,&b)&&b.button_lock==5);
-     bytes[n-1]=16;check(!mttl_settings_unpack(bytes,n,&b));
-     bytes[n-1]=5;bytes[0]=5;check(mttl_settings_unpack(bytes,n-1,&b)&&b.button_lock==0);
+     bytes[n-9]=16;check(!mttl_settings_unpack(bytes,n,&b));
+     bytes[n-9]=5;bytes[0]=5;check(mttl_settings_unpack(bytes,n-9,&b)&&b.button_lock==0);
+    }
+    {mttl_settings a,b;uint8_t bytes[1024];size_t n;unsigned ch,target,active;
+     mttl_settings_default(&a);for(ch=0;ch<4;ch++){a.timer_minutes[ch]=1440;n=mttl_settings_storage_pack(&a,bytes,sizeof(bytes));check(n&&mttl_settings_storage_unpack(bytes,n,&b)&&b.timer_minutes[ch]==1440);a.timer_minutes[ch]=0;}
+     a.timer_minutes[0]=1441;check(!mttl_settings_valid(&a));a.timer_minutes[0]=0;
+     for(ch=0;ch<4;ch++)for(target=0;target<5;target++)for(active=0;active<2;active++){
+       mttl_settings_default(&a);a.timer_minutes[ch]=1;a.schedule.rules[0].mode=1|(active?128:0);a.schedule.rules[0].channel=target;
+       check(mttl_settings_valid(&a)==(target!=4&&target!=ch));
+     }
+     mttl_settings_default(&a);a.timer_minutes[1]=90;n=mttl_settings_pack(&a,bytes,sizeof(bytes));bytes[0]=6;check(mttl_settings_unpack(bytes,n-8,&b)&&!b.timer_minutes[1]);
+    }
+    {mttl_timer_state timer={{0},{0},0};uint16_t minutes[4]={1,2,1440,0};unsigned i;
+     check(!mttl_timer_tick(&timer,minutes,15,0,100));check(!timer.running);
+     check(!mttl_timer_tick(&timer,minutes,15,7,1000)&&timer.running==7);
+     check(mttl_timer_remaining(&timer,0,1000)==60&&mttl_timer_remaining(&timer,2,1000)==86400);
+     check(!mttl_timer_tick(&timer,minutes,15,7,60999));check(mttl_timer_tick(&timer,minutes,15,7,61000)==1);
+     check(mttl_timer_tick(&timer,minutes,15,7,62000)==1); /* repeated ON cannot reset */
+     check(!mttl_timer_tick(&timer,minutes,15,6,62000));check(!mttl_timer_tick(&timer,minutes,15,7,63000));check(mttl_timer_remaining(&timer,0,63000)==60);
+     minutes[0]=3;check(!mttl_timer_tick(&timer,minutes,15,7,64000)&&mttl_timer_remaining(&timer,0,64000)==180);
+     minutes[0]=0;mttl_timer_tick(&timer,minutes,15,7,65000);check(!(timer.running&1));
+     for(i=0;i<sizeof(timer);i++)((uint8_t *)&timer)[i]=0;minutes[0]=1;
+     check(!mttl_timer_tick(&timer,minutes,15,1,0xfffffff0u));check(mttl_timer_tick(&timer,minutes,15,1,0xfffffff0u+60000u)==1);
+     check(!mttl_timer_tick(&timer,minutes,15,0,70000));check(!mttl_timer_tick(&timer,minutes,15,1,70001));check(mttl_timer_remaining(&timer,0,70001)==60);
     }
     cleanup_test();
     mttl_integration_test();

@@ -80,7 +80,7 @@
   en.liveNote='Experimental device firmware. Wi-Fi, names and MQTT settings are saved in device flash. Web OTA is available at /ota; relay and meter control remain disabled.';
   Object.assign(ko,{scanFailed:'Wi-Fi 검색 시작 실패 · 설정 화면만 남기고 다른 탭을 닫은 뒤 다시 시도하세요.',scanTimeout:'Wi-Fi 검색 대기 시간 초과 · 잠시 후 다시 시도하세요.'});
   Object.assign(en,{scanFailed:'Wi-Fi scan could not start. Close other device tabs and retry.',scanTimeout:'Wi-Fi scan timed out. Please retry shortly.'});
-  ko.scheduler='스케줄러';en.scheduler='Scheduler';
+  ko.scheduler='스케줄러';en.scheduler='Scheduler';ko.timer='타이머';en.timer='Timer';
   const api={messages:{ko,en},text:(language,key,args={})=>{
     const message=(language==='en'?en:ko)[key];
     if(message===undefined)throw Error('Missing translation: '+key);
