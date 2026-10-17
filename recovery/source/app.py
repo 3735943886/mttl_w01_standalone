@@ -13,8 +13,8 @@ TEXT={
 
 TEXT['ko'].update(title='MTTL-W01 Recovery · 1.0.0',folder='백업·로그 폴더',warning='복구 시 순정 1.0.66을 양쪽 슬롯에 기록하고 독립 설정을 초기화합니다. 부트·제조·보정 영역은 보존합니다.\n실제 보드 검증은 아직 하지 않았습니다. 백업에는 암호가 포함될 수 있으니 공개하지 마세요.')
 TEXT['en'].update(title='MTTL-W01 Recovery · 1.0.0',folder='Backup / logs folder',warning='Restore installs stock 1.0.66 in both slots and clears standalone settings, preserving boot/factory/calibration areas.\nPhysical-board validation is still pending. Backups may contain passwords; keep them private.')
-TEXT['ko']['warning']+='\n최초 사용 시 OpenOCD와 순정 FWR를 지정 배포처에서 다운로드·검증합니다. 인터넷이 필요합니다.'
-TEXT['en']['warning']+='\nFirst use downloads and verifies OpenOCD and stock FWR from the documented sources. Internet is required.'
+TEXT['ko']['warning']+='\n순정 1.0.66 펌웨어가 포함되어 있습니다. OpenOCD만 최초 사용 시 다운로드합니다.'
+TEXT['en']['warning']+='\nStock 1.0.66 firmware is included. Only OpenOCD is downloaded on first use.'
 STAGES={'ko':{'RUNTIME':'프로그램 구성 파일 확인','CONNECT':'ST Link V2 연결 및 기기 확인','BACKUP 1/2':'전체 이미지 백업 1/2','BACKUP 2/2':'전체 이미지 백업 2/2','FULL READBACK':'최종 전체 이미지 재읽기 검증','VERIFIED; REBOOT REQUEST':'검증 완료 · 재부팅 요청'},'en':{'RUNTIME':'Checking runtime integrity','CONNECT':'Connecting ST Link V2 and identifying target','BACKUP 1/2':'Full flash backup 1/2','BACKUP 2/2':'Full flash backup 2/2','FULL READBACK':'Verifying full flash readback','VERIFIED; REBOOT REQUEST':'Verified · requesting reboot'}}
 
 def home():return Path(sys.executable).resolve().parent if getattr(sys,'frozen',False) else Path(__file__).resolve().parent
@@ -24,7 +24,7 @@ class App:
         import tkinter as tk
         from tkinter import ttk,filedialog,messagebox
         self.root=root;self.tk=tk;self.ttk=ttk;self.dialog=filedialog;self.message=messagebox;self.base=home();self.language='ko';self.busy=False;self.events=queue.Queue();self.last_session=None
-        self.safety=tk.BooleanVar(value=False);self.write=tk.BooleanVar(value=False);self.file=tk.StringVar(value=str(self.base/'firmware/comMTTL-W01_1.0.66.fwr'))
+        self.safety=tk.BooleanVar(value=False);self.write=tk.BooleanVar(value=False)
         try:self.language=json.loads((self.base/'preferences.json').read_text()).get('language','ko')
         except (OSError,ValueError):pass
         if self.language not in TEXT:self.language='ko'
@@ -34,8 +34,6 @@ class App:
         self.title=ttk.Label(box,style='Title.TLabel');self.title.grid(row=0,column=0,sticky='w')
         self.lang=ttk.Button(box,command=self.switch);self.lang.grid(row=0,column=1,sticky='e')
         self.label=ttk.Label(box);self.label.grid(row=1,column=0,sticky='w',pady=(20,6))
-        self.entry=ttk.Entry(box,textvariable=self.file);self.entry.grid(row=2,column=0,sticky='ew')
-        self.browse=ttk.Button(box,command=self.choose);self.browse.grid(row=2,column=1,padx=(10,0))
         self.ack=ttk.Checkbutton(box,variable=self.safety);self.ack.grid(row=3,column=0,columnspan=2,sticky='w',pady=(20,8))
         self.mode=ttk.Checkbutton(box,variable=self.write);self.mode.grid(row=4,column=0,columnspan=2,sticky='w')
         self.warning=ttk.Label(box,wraplength=950,foreground='#9a3412');self.warning.grid(row=5,column=0,columnspan=2,sticky='w',pady=14)
@@ -47,7 +45,7 @@ class App:
         self.translate();root.after(80,self.pump)
     def translate(self):
         w=TEXT[self.language];self.root.title(w['title']);self.title.configure(text=w['heading'])
-        for widget,key in ((self.lang,'lang'),(self.label,'file'),(self.browse,'browse'),(self.ack,'safe'),(self.mode,'write'),(self.warning,'warning'),(self.start,'start')):widget.configure(text=w[key])
+        for widget,key in ((self.lang,'lang'),(self.label,'file'),(self.ack,'safe'),(self.mode,'write'),(self.warning,'warning'),(self.start,'start')):widget.configure(text=w[key])
         self.folder.configure(text=w['folder'])
     def open_folder(self):
         import os
@@ -57,9 +55,6 @@ class App:
         self.language='en' if self.language=='ko' else 'ko';self.translate()
         try:(self.base/'preferences.json').write_text(json.dumps({'language':self.language}),encoding='utf-8')
         except OSError:pass
-    def choose(self):
-        p=self.dialog.askopenfilename(filetypes=[('MTTL-W01 FWR','*.fwr')])
-        if p:self.file.set(p)
     def close(self):
         if self.busy:self.message.showwarning('MTTL-W01',TEXT[self.language]['close'])
         else:self.root.destroy()
@@ -68,8 +63,8 @@ class App:
         w=TEXT[self.language]
         if not self.safety.get():self.message.showwarning('MTTL-W01',w['need']);return
         self.busy=True
-        for widget in (self.start,self.browse,self.entry,self.ack,self.mode,self.lang):widget.configure(state='disabled')
-        self.status.configure(text=w['busy']);firmware=self.file.get();writing=self.write.get()
+        for widget in (self.start,self.ack,self.mode,self.lang):widget.configure(state='disabled')
+        self.status.configure(text=w['busy']);firmware=self.base/'firmware/comMTTL-W01_1.0.66.fwr';writing=self.write.get()
         self.progress['value']=0
         def worker():
             session=None
@@ -102,7 +97,7 @@ class App:
             elif kind=='stage':self.status.configure(text=value+' · '+TEXT[self.language]['busy'])
             else:
                 self.busy=False;self.status.configure(text=value)
-                for widget in (self.start,self.browse,self.entry,self.ack,self.mode,self.lang):widget.configure(state='normal')
+                for widget in (self.start,self.ack,self.mode,self.lang):widget.configure(state='normal')
         self.root.after(80,self.pump)
 
 if __name__=='__main__':

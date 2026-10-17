@@ -31,7 +31,7 @@ def main():
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
         for p in sorted(dist.rglob('*')):
             rel=p.relative_to(dist)
-            if p.is_file() and rel.parts[0] not in ('sessions','preferences.json','self-test.json','.downloads','firmware') and not rel.as_posix().startswith('tools/openocd/'):z.write(p,Path('MTTL-Recovery')/rel)
+            if p.is_file() and rel.parts[0] not in ('sessions','preferences.json','self-test.json','.downloads') and not rel.as_posix().startswith('tools/openocd/'):z.write(p,Path('MTTL-Recovery')/rel)
     with zipfile.ZipFile(archive) as z:assert z.testzip() is None
     report={'zip':str(archive),'bytes':archive.stat().st_size,'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'prepared_bytes':sum(p.stat().st_size for p in dist.rglob('*') if p.is_file()),'device_accessed':False,'external_runtime_bundled':False,'physical_validation_pending':True}
     (out/'package.json').write_text(json.dumps(report,indent=2),encoding='utf-8');print(json.dumps(report,indent=2))

@@ -22,9 +22,9 @@ All upstream tracked sources, Makefile and license are included under third_part
 
 Python and Tk license texts and PyInstaller's GPL license with bootloader exception are included under licenses. Runtime notices are retained. No Python/Node/SDK/compiler installation or persistent environment/registry changes are performed.
 
-## OEM firmware — downloaded, not in our ZIP
+## OEM firmware — included stock 1.0.66
 
-OEM 1.0.66 is proprietary third-party firmware, not MIT licensed. Our ZIP contains no OEM FWR. First use retrieves the already-published file:
+OEM 1.0.66 is proprietary third-party firmware, not MIT licensed. Our ZIP includes an unchanged copy of the previously published OEM FWR below. It is used automatically; no file selection or firmware download is required:
 https://raw.githubusercontent.com/af950833/mttl_w01/main/work/firmware/1.0.66/comMTTL-W01_1.0.66.fwr
 
 SHA-256: d780b578af69d52f3a05191a8e7d91a20e05085a912722327481cd5663682c04

@@ -26,7 +26,7 @@ This is for people capable of verifying power, ground, signal levels and solder 
 1. Get `MTTL-Recovery-1.0.0-Windows-x64.zip` and its checksum from [Recovery 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0).
 2. Extract the whole ZIP into a writable folder. Do not move the EXE alone. A short ASCII path such as `D:\MTTL-Recovery` is recommended.
 3. If necessary, install [ST's STSW-LINK009 USB driver](https://www.st.com/en/development-tools/stsw-link009.html). This tool does not install or replace USB drivers.
-4. Internet access is required on first use. OpenOCD is downloaded from its official release and the stock FWR from the existing published repository; both are checked against pinned SHA-256 values. Sources/hashes are in [third-party notices](THIRD_PARTY_NOTICES.md).
+4. Internet access is required on first use. Stock 1.0.66 FWR is included in the ZIP and used automatically without file selection. Only OpenOCD is downloaded from its official release. Both components are checked against pinned SHA-256 values. Sources/hashes are in [third-party notices](THIRD_PARTY_NOTICES.md).
 5. Keep the prepared folder for offline use. No permanent PATH/environment/registry changes, SDK/compiler or Python installation are required. Download restrictions or security policies stop preparation before target access; do not disable the entire firewall.
 
 ## ST Link V2 wiring photos
@@ -58,7 +58,7 @@ The upper-right red circle is **VCC_5V**, not the nearby GND2 pad. The user conf
 2. Choose Korean/English at the top right. Language/mode changes and closing are blocked while a job runs.
 3. Select the safety-confirmation checkbox.
 4. The default is **diagnosis/double-backup only**. Initially use Start in this mode to check the connection and backups.
-5. For restoration, select **Restore stock firmware** and click **Start**. The required stock firmware is prepared automatically, followed by backup, restoration, verification and reboot.
+5. For restoration, select **Restore stock firmware** and click **Start**. The included stock 1.0.66 firmware is used automatically without a file picker, followed by backup, restoration, verification and reboot.
 6. Do not suspend the PC, disconnect power/USB or force-close the app once writing has begun. Stage/status and detailed logs show progress.
 7. After writing and full readback verification succeed, the tool automatically sends a reboot command. Once the job is complete, disconnect USB power, then disconnect ST Link V2 and all debug wires. With all power disconnected, reconnect the Wi-Fi board to the AC assembly and fully reassemble the strip before connecting mains power. Then hold the main button to enter the stock Wi-Fi setup mode. Successful boot and setup AP operation must be checked separately.
 

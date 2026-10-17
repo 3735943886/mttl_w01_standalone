@@ -5,7 +5,6 @@ from core import require
 
 OPENOCD_URL='https://github.com/openocd-org/openocd/releases/download/v0.12.0/openocd-v0.12.0-i686-w64-mingw32.tar.gz'
 OPENOCD_SHA='d7168545a6d5df4772b6090d470650f3eb8c9732dbd19b1f9027824c7f4a6fa3'
-FWR_URL='https://raw.githubusercontent.com/af950833/mttl_w01/main/work/firmware/1.0.66/comMTTL-W01_1.0.66.fwr'
 FWR_SHA='d780b578af69d52f3a05191a8e7d91a20e05085a912722327481cd5663682c04'
 
 def download(url,sha,target,limit):
@@ -36,6 +35,8 @@ def extract_archive(archive,destination):
 
 def ensure_dependencies(home,log):
     home=Path(home);manifest=json.loads((home/'runtime-manifest.json').read_text(encoding='utf-8'))['files']
+    firmware=home/'firmware/comMTTL-W01_1.0.66.fwr'
+    require(firmware.is_file() and hashlib.sha256(firmware.read_bytes()).hexdigest()==FWR_SHA,'Included stock firmware missing or corrupted; extract the complete recovery ZIP again')
     runtime={p:d for p,d in manifest.items() if p.startswith('tools/openocd/')}
     require(bool(runtime),'Missing pinned runtime files')
     if not all((home/p).is_file() and hashlib.sha256((home/p).read_bytes()).hexdigest()==d for p,d in runtime.items()):
@@ -45,6 +46,3 @@ def ensure_dependencies(home,log):
         target=home/'tools/openocd'
         if target.exists():os.replace(target,home/'tools'/('openocd-previous-'+uuid.uuid4().hex))
         os.replace(stage,target)
-    firmware=home/'firmware/comMTTL-W01_1.0.66.fwr'
-    if not firmware.is_file() or hashlib.sha256(firmware.read_bytes()).hexdigest()!=FWR_SHA:
-        log('PREPARE FWR');download(FWR_URL,FWR_SHA,firmware,1024*1024)
