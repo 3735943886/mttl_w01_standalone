@@ -17,7 +17,7 @@ The developer accepts no responsibility for problems or consequences arising fro
 
 ## Wired recovery — ST Link V2
 
-For wired recovery when web OTA is unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md). Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
+If a problem during a firmware update makes web OTA unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md) for wired recovery. Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
 
 ## Prebuilt firmware — ready to install
 
