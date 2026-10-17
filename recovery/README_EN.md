@@ -18,7 +18,7 @@ This is for people capable of verifying power, ground, signal levels and solder 
 - Only the known Cortex-M3/1MiB flash/boot-code fingerprint and 0xB000/0x80000 slot layout are accepted.
 - Restores stock firmware **1.0.66**.
 - Korean/English GUI, double-backup, diagnosis, image planning, bounded writes, full readback verification and reset are implemented.
-- Offline fault-injection/workflow and frozen EXE checks passed. **Physical write and recovery boot have not been tested with this integrated tool.** Prior use of related OpenOCD routines is not equivalent to validating this application.
+- Offline fault-injection/workflow and frozen EXE checks passed. **Physical write and recovery boot have not been tested with this integrated tool.**
 - Compatibility with all board variants, successful recovery and power-loss safety are not guaranteed.
 
 ## Requirements and download
