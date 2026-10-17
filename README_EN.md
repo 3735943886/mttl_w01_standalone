@@ -17,7 +17,7 @@ The developer accepts no responsibility for problems or consequences arising fro
 
 ## Prebuilt firmware — ready to install
 
-For wired recovery when web OTA is unavailable, see the [ST-Link recovery tool and wiring/usage guide](recovery/README_EN.md). Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
+For wired recovery when web OTA is unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md). Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
 
 Download and install the FWR below without building it yourself.
 

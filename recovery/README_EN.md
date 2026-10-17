@@ -4,17 +4,17 @@
 
 [Download recovery tool](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0) · [Project](../README_EN.md) · [Third-party components](THIRD_PARTY_NOTICES.md)
 
-A portable Windows x64 tool for reading a **fully detached MTTL-W01 Wi-Fi board** over ST-Link V2/SWD and restoring stock 1.0.66 while preserving a verified backup from that same device.
+A portable Windows x64 tool for reading a **fully detached MTTL-W01 Wi-Fi board** over ST Link V2/SWD and restoring stock 1.0.66 while preserving a verified backup from that same device.
 
 ## Mandatory safety conditions
 
-**Unplugging the strip's mains cord alone is not sufficient. Fully disconnect the Wi-Fi board from the AC assembly and every interconnecting lead before connecting ST-Link/USB/PC. Never connect the AC assembly and wired debug equipment together.**
+**Unplugging the strip's mains cord alone is not sufficient. Fully disconnect the Wi-Fi board from the AC assembly and every interconnecting lead before connecting ST Link V2/USB/PC. Never connect the AC assembly and wired debug equipment together.**
 
 This is for people capable of verifying power, ground, signal levels and solder connections. Low-voltage labels do not prove isolation. Do not change wiring while powered. Software cannot prevent electrical damage caused by unsafe wiring or power.
 
 ## Scope and validation
 
-- Windows x64, ST-Link V2 and SWD. Install the USB driver separately.
+- Windows x64, ST Link V2 and SWD. Install the USB driver separately.
 - Only the known Cortex-M3/1MiB flash/boot-code fingerprint and 0xB000/0x80000 slot layout are accepted.
 - Only the reference stock **1.0.66 FWR** is supported. Not 1.0.68, standalone FWR, BIN or donor full dumps.
 - Korean/English GUI, double-backup, diagnosis, image planning, bounded writes, full readback verification and reset are implemented.
@@ -29,13 +29,21 @@ This is for people capable of verifying power, ground, signal levels and solder 
 4. Internet access is required on first use. OpenOCD is downloaded from its official release and the stock FWR from the existing published repository; both are checked against pinned SHA-256 values. Sources/hashes are in [third-party notices](THIRD_PARTY_NOTICES.md).
 5. Keep the prepared folder for offline use. No permanent PATH/environment/registry changes, SDK/compiler or Python installation are required. Download restrictions or security policies stop preparation before target access; do not disable the entire firewall.
 
-## ST-Link wiring photo
+## ST Link V2 wiring photos
 
-![ST-Link pad locations on the detached Wi-Fi board](docs/stlink-wiring.jpg)
+### ST Link V2 adapter
 
-The red marks show the pads used on the user's board. Check silk labels and actual pads with power off. Board variants and ST-Link clones can have different layouts.
+![ST Link V2 adapter and connected wires](docs/st-link-v2.png)
 
-| ST-Link | Wi-Fi board pad | Purpose |
+This is the ST Link V2 adapter used by the user. Do not identify signals by wire colour alone; verify your own adapter's pin labels and actual outputs.
+
+### Wi-Fi board pad locations
+
+![ST Link V2 pad locations on the detached Wi-Fi board](docs/stlink-wiring.jpg)
+
+The red marks show the pads used on the user's board. Check silk labels and actual pads with power off. Board variants and ST Link V2 clones can have different layouts.
+
+| ST Link V2 | Wi-Fi board pad | Purpose |
 |---|---|---|
 | SWDIO | JTAG_TMS1 | SWD data |
 | SWCLK | JTAG_CLK1 | SWD clock |
@@ -57,7 +65,7 @@ The upper-right red circle is **VCC_5V**, not the nearby GND2 pad. The user conf
 ## Automatic workflow
 
 1. Check application/runtime integrity and prepare missing files.
-2. Identify ST-Link, CPU and flash; stop unsupported targets.
+2. Identify ST Link V2, CPU and flash; stop unsupported targets.
 3. Read the entire 1MiB flash twice. Save matching originals and SHA-256.
 4. Diagnose boot code, slots and protected boundaries. Failed/mismatching backups never permit writes.
 5. Generate a recovery image from that device's own dump, without importing donor identity data.
@@ -92,4 +100,4 @@ Files exist only once their stage is reached. **Dumps can contain passwords and 
 
 [Validation scope](TEST_RESULT.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-Application source and matching GPL flasher source are supplied in this folder and the ZIP. `--self-test` prepares dependencies and checks GUI/languages/FWR decoding/runtime integrity/OpenOCD version, saving `self-test.json`. It does not connect to ST-Link or read/write a target.
+Application source and matching GPL flasher source are supplied in this folder and the ZIP. `--self-test` prepares dependencies and checks GUI/languages/FWR decoding/runtime integrity/OpenOCD version, saving `self-test.json`. It does not connect to ST Link V2 or read/write a target.
