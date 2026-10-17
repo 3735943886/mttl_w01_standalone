@@ -209,7 +209,6 @@ OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart i
 ### 2.0.15 — October 17, 2026
 
 - Identical image uploads now show “This firmware is already installed” instead of a general OTA error, without reboot or activation (updated build `6c20881eb798b297`).
-- Version remains 2.0.15. Install this updated build first; subsequent duplicate uploads use the new message.
 - Added four per-channel HA timer number settings and four remaining-time sensors (#12).
 - Active countdowns publish retained every five seconds; expiry/cancellation sends zero once, without periodic idle traffic.
 - Twenty measurement sensors check one slot every 500ms and publish changes. Fresh unchanged readings heartbeat about every 300 seconds; HA expiry is 600 seconds.
