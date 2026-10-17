@@ -60,7 +60,7 @@ The upper-right red circle is **VCC_5V**, not the nearby GND2 pad. The user conf
 4. The default is **diagnosis/double-backup only**. Initially use Start in this mode to check the connection and backups.
 5. For restoration, select **Restore stock firmware** and click **Start**. The required stock firmware is prepared automatically, followed by backup, restoration, verification and reboot.
 6. Do not suspend the PC, disconnect power/USB or force-close the app once writing has begun. Stage/status and detailed logs show progress.
-7. After writing and full readback verification succeed, the tool automatically sends a reboot command. Once the job is complete, switch off USB and any separate board supply, then disconnect ST Link V2 and all debug wires. With all power disconnected, reconnect the Wi-Fi board to the AC assembly and fully reassemble the strip before connecting mains power. Then hold the main button to enter the stock Wi-Fi setup mode. Successful boot and setup AP operation must be checked separately.
+7. After writing and full readback verification succeed, the tool automatically sends a reboot command. Once the job is complete, disconnect USB power, then disconnect ST Link V2 and all debug wires. With all power disconnected, reconnect the Wi-Fi board to the AC assembly and fully reassemble the strip before connecting mains power. Then hold the main button to enter the stock Wi-Fi setup mode. Successful boot and setup AP operation must be checked separately.
 
 ## Automatic workflow
 
