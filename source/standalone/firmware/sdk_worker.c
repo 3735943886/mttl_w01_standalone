@@ -29,7 +29,8 @@ static volatile uint32_t watchdog_worker_at,watchdog_http_at,watchdog_relay_at;
 static volatile uint8_t watchdog_worker_seen,watchdog_http_active;
 static uint8_t watchdog_started,watchdog_expired;
 void mttl_sdk_watchdog_http(int active){watchdog_http_at=(uint32_t)xTaskGetTickCount()*portTICK_RATE_MS;watchdog_http_active=active!=0;}
-static mttl_device_app device;
+/* CPU-only state, fully zeroed by mttl_device_init before tasks use it. */
+static mttl_device_app device __attribute__((section(".mttl.cache")));
 static mttl_schedule_state schedule_state;
 static uint8_t worker_started;
 static uint8_t config_occupied,occupied;
@@ -146,6 +147,17 @@ static size_t device_size;
 static mttl_settings pending_config __attribute__((section(".mttl.cache")));
 static uint8_t config_ready;
 static uint8_t config_keep_password;
+static int timer_config_request(uint8_t channel,uint16_t minutes){
+ int ok=0;
+ taskENTER_CRITICAL();
+ if(channel<4&&minutes<=1440&&!occupied&&!config_occupied&&!energy_barrier_state){
+   if(device.settings.timer_minutes[channel]==minutes){device.mqtt_timer_known&=~(1u<<channel);ok=1;}
+   else{pending_config=device.settings;pending_config.timer_minutes[channel]=minutes;
+     if(mttl_settings_valid(&pending_config)){config_keep_password=1;config_occupied=config_ready=1;ok=1;}
+     else memset(&pending_config,0,sizeof(pending_config));}
+ }
+ taskEXIT_CRITICAL();return ok;
+}
 static uint8_t ready,ap_ready,stop_phase;
 static mttl_worker_status published;
 static uint32_t rssi_polled_at;
@@ -273,6 +285,7 @@ static void worker(void *p){
     relay_wake=xSemaphoreCreateBinary();
     if(relay_wake&&xTaskCreate(relay_task,"mttl_relay",384,0,tskIDLE_PRIORITY+2,0)==pdPASS)device.relay_request=mttl_sdk_control_request;
     else{if(relay_wake)vSemaphoreDelete(relay_wake);relay_wake=0;device.hardware.verified=0;}
+    device.timer_request=timer_config_request;
     if(device.hardware.verified){static const uint8_t pins[5]={3,5,0x22,2,1};gpio_init(&setup_led,(PinName)0x23);gpio_mode(&setup_led,PullNone);gpio_write(&setup_led,0);gpio_dir(&setup_led,PIN_OUTPUT);for(k=0;k<5;k++){gpio_init(&button_pins[k],(PinName)pins[k]);gpio_mode(&button_pins[k],PullUp);gpio_dir(&button_pins[k],PIN_INPUT);mttl_button_input_init(&button_inputs[k],30);}buttons_ready=1;}
     mttl_sdk_energy_init(&device.settings,clock_ms(0));
     mttl_sdk_meter_set_service(meter_network_service);
@@ -312,7 +325,7 @@ static void worker(void *p){
               {int mqtt_changed=mttl_settings_mqtt_changed(&device.settings,&pending_config);
               taskENTER_CRITICAL();device.settings=pending_config;mttl_timer_tick(&device.timers,device.settings.timer_minutes,relay_known,relay_on,clock_ms(0));if(mqtt_changed)++device.revision;device.persistent=1;taskEXIT_CRITICAL();}device.protection.current_count=device.protection.power_count=0;}
             storage_end();
-            taskENTER_CRITICAL();wipe((char *)&pending_config,sizeof(pending_config));config_ready=config_occupied=0;taskEXIT_CRITICAL();
+            taskENTER_CRITICAL();wipe((char *)&pending_config,sizeof(pending_config));config_ready=config_occupied=0;device.mqtt_timer_known=0;taskEXIT_CRITICAL();
         }
         taskENTER_CRITICAL();
         if(ready){manual_setup=1;if(mttl_wifi_submit(&life.network,(const uint8_t *)requested_ssid,length(requested_ssid,32),(const uint8_t *)requested_password,length(requested_password,64),clock_ms(0))){life.join_started=life.dhcp_started=0;}

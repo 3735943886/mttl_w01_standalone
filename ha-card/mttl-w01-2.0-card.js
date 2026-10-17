@@ -28,7 +28,7 @@ class MTTLW0120Card extends HTMLElement {
     const signature = Object.values(this._ids()).flat().map(id => {
       const state = hass.states[id];
       const registry = hass.entities?.[id];
-      return `${id}:${state?.state || "missing"}:${state?.attributes?.friendly_name || ""}:${registry?.name || ""}:${registry?.original_name || ""}`;
+      return `${id}:${state?.state || "missing"}:${state?.attributes?.friendly_name || ""}:${state?.attributes?.unit_of_measurement || ""}:${registry?.name || ""}:${registry?.original_name || ""}`;
     }).join("|");
     if (signature !== this._signature) {
       this._signature = signature;
@@ -36,7 +36,7 @@ class MTTLW0120Card extends HTMLElement {
     }
   }
 
-  getCardSize() { return 6; }
+  getCardSize() { return 7; }
 
   _ids() {
     const base = `mttl_${this._config.mac}`;
@@ -50,6 +50,8 @@ class MTTLW0120Card extends HTMLElement {
       meters: [1, 2, 3, 4].map(n => sensor(`meter${n}`)),
       currents: [1, 2, 3, 4].map(n => sensor(`current${n}`)),
       temperatures: [1, 2, 3, 4].map(n => sensor(`temperature${n}`)),
+      timers: [1, 2, 3, 4].map(n => `number.${base}_timer${n}`),
+      remaining: [1, 2, 3, 4].map(n => sensor(`timer_remaining${n}`)),
     };
   }
 
@@ -60,6 +62,18 @@ class MTTLW0120Card extends HTMLElement {
     if (!this._available(entity)) return fallback;
     const unit = entity.attributes.unit_of_measurement || "";
     return `${entity.state}${unit ? ` ${unit}` : ""}`;
+  }
+  _duration(id, defaultUnit) {
+    const entity = this._entity(id);
+    if (!this._available(entity) || !String(entity.state).trim()) return "—";
+    const value = Number(entity.state);
+    const unit = entity.attributes?.unit_of_measurement || defaultUnit;
+    const factor = { s: 1, min: 60, h: 3600, d: 86400, ms: 0.001 }[unit];
+    if (!Number.isFinite(value) || value < 0 || factor === undefined) return "—";
+    const seconds = Math.round(value * factor);
+    if (!Number.isSafeInteger(seconds)) return "—";
+    return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+      .map(part => String(part).padStart(2, "0")).join(":");
   }
   _escape(value) {
     return String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
@@ -97,7 +111,9 @@ class MTTLW0120Card extends HTMLElement {
       return `<section class="channel ${active ? "active" : ""} ${usable ? "" : "unavailable"}">
         <button class="channel-toggle" data-entity="${ids.switches[i]}" ${usable ? "" : "disabled"}>
           <ha-icon icon="${this._escape(icon)}"></ha-icon><span>${this._escape(name)}</span><b>${active ? "ON" : "OFF"}</b>
-        </button><div class="readings">${readings}</div>
+        </button><div class="readings">${readings}
+          <button class="reading timer-remaining" data-more-info="${ids.timers[i]}" title="Click to set auto OFF timer in minutes; 0 disables" ${this._available(this._entity(ids.timers[i])) ? "" : "disabled"}><span>Timer</span><strong>${this._escape(this._duration(ids.remaining[i], "s"))}</strong></button>
+        </div>
       </section>`;
     }).join("");
 
@@ -107,8 +123,9 @@ class MTTLW0120Card extends HTMLElement {
       .summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}.summary-item,.all{min-width:0;min-height:46px;padding:4px 7px;border:1px solid color-mix(in srgb,var(--success-color,#22c55e) 30%,var(--divider-color));border-radius:9px;background:color-mix(in srgb,var(--success-color,#22c55e) 10%,var(--card-background-color));color:var(--primary-text-color);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center}.summary span,.all span{color:var(--secondary-text-color);font-size:11px}.summary strong,.all strong{font-size:12px;white-space:nowrap}.all.partial{border-color:var(--primary-color);color:var(--primary-color)}.all.on{background:color-mix(in srgb,var(--success-color,#22c55e) 22%,var(--card-background-color));color:var(--success-color,#15803d)}
       .channels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.channel{min-width:0;padding:10px;border:1px solid var(--divider-color);border-radius:12px;background:var(--card-background-color)}.channel.active{border-color:var(--primary-color);background:color-mix(in srgb,var(--primary-color) 8%,var(--card-background-color))}.channel.unavailable{opacity:.55}
       .channel-toggle{width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:8px;padding:5px;border:0;background:transparent;color:var(--primary-text-color);cursor:pointer;text-align:left}.channel-toggle ha-icon{width:21px;height:21px;color:var(--secondary-text-color)}.channel.active .channel-toggle ha-icon,.channel.active .channel-toggle b{color:var(--primary-color)}.channel-toggle span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.channel-toggle b{font-size:11px;color:var(--secondary-text-color)}
-      .readings{display:flex;flex-direction:column;margin-top:5px;border-top:1px solid var(--divider-color);padding-top:5px}.reading{display:flex;justify-content:space-between;gap:8px;width:100%;padding:4px 5px;border:0;background:transparent;color:var(--secondary-text-color);cursor:pointer;font-size:12px}.reading strong{color:var(--primary-text-color);white-space:nowrap}.reading:hover{background:var(--secondary-background-color);border-radius:6px}
+      .readings{display:flex;flex-direction:column;margin-top:5px;border-top:1px solid var(--divider-color);padding-top:5px}.reading{display:flex;justify-content:space-between;gap:8px;width:100%;padding:4px 5px;border:0;background:transparent;color:var(--secondary-text-color);cursor:pointer;font-size:12px}.reading strong{color:var(--primary-text-color);white-space:nowrap}.reading:disabled{cursor:default;opacity:.6}.timer-remaining{border-top:1px solid var(--divider-color);margin-top:4px;padding-top:8px}.timer-remaining strong{font-variant-numeric:tabular-nums}.reading:not(:disabled):hover{background:var(--secondary-background-color);border-radius:6px}
       @media(max-width:600px){.summary{grid-template-columns:repeat(6,minmax(0,1fr))}.summary-item{grid-column:span 2}.summary-item:nth-child(4),.summary .all{grid-column:span 3}.channels:not(.mobile-two-rows){grid-template-columns:1fr}}
+      @media(max-width:360px){.mobile-two-rows .timer-remaining{flex-direction:column;align-items:flex-start;gap:2px}.mobile-two-rows .timer-remaining strong{align-self:flex-end}}
     </style><ha-card>
       <div class="header"><div class="title">${this._escape(title)}</div><div class="availability"><span class="dot ${available ? "online" : ""}"></span>${available ? "Online" : "Offline"}</div></div>
       <div class="summary">${summary}<button class="all ${onCount === 4 ? "on" : onCount ? "partial" : ""}" data-all ${available ? "" : "disabled"}><span>ALL</span><strong>${allState}</strong></button></div>
@@ -162,4 +179,4 @@ class MTTLW0120CardEditor extends HTMLElement {
 if (!customElements.get("mttl-w01-2-0-card-editor")) customElements.define("mttl-w01-2-0-card-editor", MTTLW0120CardEditor);
 if (!customElements.get("mttl-w01-2-0-card")) customElements.define("mttl-w01-2-0-card", MTTLW0120Card);
 window.customCards = window.customCards || [];
-window.customCards.push({ type:"mttl-w01-2-0-card", name:"MTTL-W01 2.0 Card", description:"MTTL-W01 control with extended voltage, current, energy and temperature sensors", preview:true });
+window.customCards.push({ type:"mttl-w01-2-0-card", name:"MTTL-W01 2.0.15 Card", description:"MTTL-W01 control with extended sensors, timer settings and remaining time", preview:true });

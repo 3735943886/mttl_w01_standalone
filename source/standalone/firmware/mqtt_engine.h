@@ -15,6 +15,7 @@ typedef struct {
     int (*receive)(void *,uint8_t *,size_t);
     int (*command)(void *,uint8_t,uint8_t);
     void *command_context;
+    int (*timer_command)(void *,uint8_t,uint16_t);
 } mttl_mqtt_io;
 typedef struct {
     mttl_mqtt_session session;mttl_mq_rx rx;

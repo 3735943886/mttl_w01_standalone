@@ -1,11 +1,13 @@
 #include "device_app.h"
+#include "mqtt_command.h"
 #include "ota_guard.h"
 #include "ota_stream.h"
 #include "ota_hash.h"
 #include "ota_readback.h"
 #include "ota_stage.h"
 #include <string.h>
-char mttl_test_ha_json[25][768],mttl_test_ha_topics[25][128];
+#include <stdio.h>
+char mttl_test_ha_json[33][768],mttl_test_ha_topics[33][128];
 char mttl_test_device_json[2048],mttl_test_config_json[2048];
 extern unsigned mttl_test_count,mttl_test_failed,mttl_failed_ids[64];
 static void check(int p){++mttl_test_count;if(!p&&mttl_test_failed<64)mttl_failed_ids[mttl_test_failed++]=mttl_test_count;}
@@ -33,21 +35,203 @@ static int send_mock(void *p,const uint8_t *data,size_t n){broker *v=p;size_t i,
  v->tx_n=0;return (int)take;
 }
 static int recv_mock(void *p,uint8_t *data,size_t n){broker *v=p;size_t take=v->rx_n>n?n:v->rx_n;if(v->fail_rx)return -1;memcpy(data,v->rx,take);memmove(v->rx,v->rx+take,v->rx_n-take);v->rx_n-=take;return (int)take;}
+static unsigned timer_calls;
+static int timer_mock(void *p,uint8_t ch,uint16_t minutes){(void)p;if(ch==2&&minutes==30)++timer_calls;return 1;}
 static int command_mock(void *p,uint8_t ch,uint8_t on){broker *v=p;if(ch==3&&on)++v->commands;return 1;}
+static mttl_sample *sensor_value(unsigned index){
+ if(index==5)return &app.samples.total_power;if(index==6)return &app.samples.total_meter;
+ if(index==7)return &app.samples.voltage;if(index==8)return &app.samples.total_current;
+ {unsigned ch=(index-9)/4,metric=(index-9)%4;
+ return metric==0?&app.samples.power[ch]:metric==1?&app.samples.meter[ch]:metric==2?&app.samples.current[ch]:&app.samples.temperature[ch];}
+}
+static void sensor_prepare(void){
+ mttl_device_init(&app,1700000000);app.mqtt.session.state=MTTL_MQ_ONLINE;app.mqtt.phase=9;
+ app.mqtt_known=app.control.known_mask=15;app.mqtt_all=1;app.mqtt_timer_known=app.mqtt_remaining_known=15;
+}
+static int sensor_probe(unsigned index,int32_t raw,int valid,uint32_t now,uint32_t age){
+ mttl_sample_update(sensor_value(index),raw,valid,now-age);app.publish_index=(uint8_t)index;app.publish_at=now-500;
+ mttl_device_tick(&app,"aabbccddeeff",1,now,0);return app.mqtt.tx_size!=0;
+}
+static void sensor_packet(const char *key,const char *payload){
+ mttl_publish p;char topic[96];snprintf(topic,sizeof(topic),"mttl/standalone/aabbccddeeff/%s",key);
+ check(mttl_parse_publish(app.mqtt.tx,app.mqtt.tx_size,&p));check(!p.retained);
+ check(p.topic_size==strlen(topic)&&!memcmp(p.topic,topic,p.topic_size));
+ check(p.payload_size==strlen(payload)&&!memcmp(p.payload,payload,p.payload_size));app.mqtt.tx_size=app.mqtt.tx_sent=0;
+}
+static void sensor_policy_test(void){
+ static const char *keys[]={"power","meter","voltage","current","power1","meter1","current1","temperature1","power2","meter2","current2","temperature2","power3","meter3","current3","temperature3","power4","meter4","current4","temperature4"};
+ unsigned k;uint32_t first,previous;
+ sensor_prepare();
+ for(k=0;k<20;k++){
+  check(sensor_probe(k+5,1234,1,1000+k*500,0));sensor_packet(keys[k],(k==2||(k>=4&&(k-4)%4==3))?"123.4":"1.234");
+ }
+ check(app.mqtt_sensor_known==0xfffffu);
+ for(k=0;k<20;k++)check(!sensor_probe(k+5,1234,1,21000+k*500,0));
+ for(k=0;k<20;k++){
+  first=41000+k*500;check(sensor_probe(k+5,1235,1,first,0));
+  sensor_packet(keys[k],(k==2||(k>=4&&(k-4)%4==3))?"123.5":"1.235");
+  check(!sensor_probe(k+5,1235,1,first+299999,0));check(app.mqtt_sensor_at[k]==first);
+  check(sensor_probe(k+5,1235,1,first+300000,0));
+  sensor_packet(keys[k],(k==2||(k>=4&&(k-4)%4==3))?"123.5":"1.235");
+ }
+ /* Invalid/stale samples cannot heartbeat an old value or overwrite its cache. */
+ previous=app.mqtt_sensor_at[0];check(!sensor_probe(5,9999,0,previous+300000,0));
+ check(!sensor_probe(5,9999,1,previous+300000,30001));check(app.mqtt_sensor_at[0]==previous&&app.mqtt_sensor_value[0]==1235);
+ check(sensor_probe(5,1235,1,previous+300000,0));sensor_packet("power","1.235");
+ /* One raw unit changes the MQTT decimal; sign and zero remain exact. */
+ check(sensor_probe(5,-1,1,1000000,0));sensor_packet("power","-0.001");
+ check(sensor_probe(5,0,1,1000500,0));sensor_packet("power","0.000");
+ check(!sensor_probe(5,0,1,1001000,0));
+ /* Busy/rejected queues do not acknowledge a newer value. */
+ previous=app.mqtt_sensor_at[0];app.mqtt.tx_size=1;(void)sensor_probe(5,42,1,1001500,0);
+ check(app.mqtt_sensor_at[0]==previous&&app.mqtt_sensor_value[0]==0);app.mqtt.tx_size=0;
+ app.mqtt.phase=10;check(!sensor_probe(5,42,1,1002000,0));check(app.mqtt_sensor_value[0]==0);
+ app.mqtt.phase=9;check(sensor_probe(5,42,1,1002500,0));sensor_packet("power","0.042");
+ /* Heartbeat subtraction is safe across the 32-bit uptime wrap. */
+ sensor_prepare();first=0xfffffff0u;check(sensor_probe(5,42,1,first,0));sensor_packet("power","0.042");
+ check(!sensor_probe(5,42,1,first+299999,0));check(sensor_probe(5,42,1,first+300000,0));sensor_packet("power","0.042");
+ /* HA birth and offline clear known values, so fresh unchanged data resyncs. */
+ app.mqtt.rediscover=1;mttl_device_tick(&app,"aabbccddeeff",1,first+300100,0);check(!app.mqtt_sensor_known);
+ app.mqtt.rediscover=0;app.mqtt_known=app.control.known_mask=15;app.mqtt_all=1;app.mqtt_timer_known=app.mqtt_remaining_known=15;
+ check(sensor_probe(5,42,1,first+300200,0));sensor_packet("power","0.042");
+ app.mqtt.session.state=MTTL_MQ_OFF;mttl_device_tick(&app,"aabbccddeeff",0,first+300300,0);check(!app.mqtt_sensor_known);
+ /* The 500ms guard checks no sensor between its normal slots. */
+ sensor_prepare();app.publish_at=1000;app.publish_index=5;mttl_sample_update(&app.samples.total_power,1,1,1000);
+ mttl_device_tick(&app,"aabbccddeeff",1,1499,0);check(!app.mqtt.tx_size&&app.publish_index==5);
+ mttl_device_tick(&app,"aabbccddeeff",1,1500,0);sensor_packet("power","0.001");check(app.publish_index==6);
+
+}
+static void remaining_check(unsigned channel,uint32_t value){
+ mttl_publish p;char topic[96],payload[16];
+ snprintf(topic,sizeof(topic),"mttl/standalone/aabbccddeeff/timer_remaining%u",channel+1);
+ snprintf(payload,sizeof(payload),"%lu",(unsigned long)value);
+ check(mttl_parse_publish(app.mqtt.tx,app.mqtt.tx_size,&p));
+ check(p.retained&&p.topic_size==strlen(topic)&&!memcmp(p.topic,topic,p.topic_size));
+ check(p.payload_size==strlen(payload)&&!memcmp(p.payload,payload,p.payload_size));
+ app.mqtt.tx_size=app.mqtt.tx_sent=0;
+}
+static void remaining_cadence_test(void){
+ unsigned k,ch,counts[4]={0},sensors=0;uint32_t now,last[4]={0};uint16_t minutes[4]={90,90,90,90};mttl_publish p;
+ mttl_device_init(&app,1700000000);app.mqtt.session.state=MTTL_MQ_ONLINE;app.mqtt.phase=9;
+ app.mqtt_known=app.mqtt_on=app.control.known_mask=app.control.on_mask=15;
+ app.mqtt_all=app.mqtt_was_online=1;app.mqtt_timer_known=15;app.mqtt_remaining_known=15;
+ for(k=0;k<20;k++)mttl_sample_update(((mttl_sample *)&app.samples)+k,1000,1,1000);
+ mttl_timer_tick(&app.timers,minutes,15,15,1000);
+ /* A due countdown must never precede a completed switch confirmation. */
+ app.control.on_mask=14;mttl_device_tick(&app,"aabbccddeeff",1,1000,0);
+ check(mttl_parse_publish(app.mqtt.tx,app.mqtt.tx_size,&p));check(p.topic_size>=4&&!memcmp(p.topic+p.topic_size-4,"/sw1",4));
+ app.mqtt.tx_size=app.mqtt.tx_sent=0;app.control.on_mask=app.mqtt_on=15;
+ for(now=1010;now<11010;now+=10){
+  mttl_device_tick(&app,"aabbccddeeff",1,now,0);
+  if(!app.mqtt.tx_size)continue;
+  check(mttl_parse_publish(app.mqtt.tx,app.mqtt.tx_size,&p));
+  if(p.topic_size>=17&&!memcmp(p.topic+p.topic_size-17,"/timer_remaining",16)){
+   ch=p.topic[p.topic_size-1]-'1';check(ch<4);
+   if(ch<4){if(counts[ch])check(now-last[ch]>=5000);last[ch]=now;++counts[ch];check(p.retained);}
+  }else{++sensors;check(!p.retained);}
+  app.mqtt.tx_size=app.mqtt.tx_sent=0;
+ }
+ for(ch=0;ch<4;ch++)check(counts[ch]==2);
+ check(sensors>=18&&sensors<=20); /* Sensor check rotation is ~2/sec; unchanged values are silent. */
+}
+static void remaining_test(void){
+ unsigned ch,k;uint16_t minutes[4]={90,90,90,90};uint32_t at;
+ mttl_device_init(&app,1700000000);app.mqtt.session.state=MTTL_MQ_ONLINE;app.mqtt.phase=9;
+ app.mqtt.session.desired=1;app.mqtt_known=app.control.known_mask=15;app.mqtt_all=1;app.mqtt_timer_known=15;app.publish_index=13;
+ /* Initial idle zero once/channel, then silence even if a duration is configured. */
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",100));remaining_check(ch,0);}
+ for(k=1;k<10;k++)check(!mttl_device_publish_remaining(&app,"aabbccddeeff",100+k*1000));
+ app.settings.timer_minutes[0]=90;check(!mttl_device_publish_remaining(&app,"aabbccddeeff",10000));
+ /* Four simultaneous timers use independent 5-second clocks. No sensor cursor use. */
+ mttl_timer_tick(&app.timers,minutes,15,15,11000);
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",11000));remaining_check(ch,5400);}
+ check(app.publish_index==13);check(!mttl_device_publish_remaining(&app,"aabbccddeeff",15999));
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",16000));remaining_check(ch,5395);}
+ /* A full output queue or rediscovery cannot acknowledge a sample prematurely. */
+ app.mqtt.tx_size=1;check(!mttl_device_publish_remaining(&app,"aabbccddeeff",21000));check(app.mqtt_remaining_at[0]==16000);
+ app.mqtt.tx_size=0;app.mqtt.rediscover=1;check(!mttl_device_publish_remaining(&app,"aabbccddeeff",21000));app.mqtt.rediscover=0;
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",26000));remaining_check(ch,5385);}
+ check(!mttl_device_publish_remaining(&app,"aabbccddeeff",26000)); /* no delayed backlog */
+ /* OFF/cancel sends zero once, while unchanged ON does not restart. */
+ mttl_timer_tick(&app.timers,minutes,15,0,26100);
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",26100));remaining_check(ch,0);}
+ check(!mttl_device_publish_remaining(&app,"aabbccddeeff",99999));
+ minutes[0]=1;minutes[1]=minutes[2]=minutes[3]=0;mttl_timer_tick(&app.timers,minutes,15,1,100000);
+ check(mttl_device_publish_remaining(&app,"aabbccddeeff",100000));remaining_check(0,60);
+ check(mttl_device_publish_remaining(&app,"aabbccddeeff",159000));remaining_check(0,1);
+ check(mttl_device_publish_remaining(&app,"aabbccddeeff",160000));remaining_check(0,0);
+ check(!mttl_device_publish_remaining(&app,"aabbccddeeff",161000)); /* OFF queue still pending */
+ /* Wrap-safe 5s cadence and immediate timer restart/duration change. */
+ mttl_timer_tick(&app.timers,minutes,15,0,161000);at=0xfffffff0u;mttl_timer_tick(&app.timers,minutes,15,1,at);
+ check(mttl_device_publish_remaining(&app,"aabbccddeeff",at));remaining_check(0,60);
+ check(!mttl_device_publish_remaining(&app,"aabbccddeeff",at+4999));
+ check(mttl_device_publish_remaining(&app,"aabbccddeeff",at+5000));remaining_check(0,55);
+ minutes[0]=1440;mttl_timer_tick(&app.timers,minutes,15,1,at+5100);
+ check(mttl_device_publish_remaining(&app,"aabbccddeeff",at+5100));remaining_check(0,86400);
+ /* Removal stops publication even while the switch remains ON. */
+ minutes[0]=0;mttl_timer_tick(&app.timers,minutes,15,1,at+5200);
+ check(mttl_device_publish_remaining(&app,"aabbccddeeff",at+5200));remaining_check(0,0);
+ check(!mttl_device_publish_remaining(&app,"aabbccddeeff",at+6200));
+ /* HA birth/offline invalidate once-only state; reconnect reseeds idle zeros. */
+ app.mqtt.rediscover=1;mttl_device_tick(&app,"aabbccddeeff",1,at+6300,0);check(!app.mqtt_remaining_known);
+ app.mqtt.rediscover=0;
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",at+6400));remaining_check(ch,0);}
+ app.mqtt.session.state=MTTL_MQ_OFF;mttl_device_tick(&app,"aabbccddeeff",0,at+6500,0);check(!app.mqtt_remaining_known);
+ check(!mttl_device_publish_remaining(&app,"aabbccddeeff",at+6500));check(!app.mqtt_remaining_known);
+}
 void mttl_integration_test(void){mttl_settings s;mttl_mqtt_engine e;mttl_mqtt_io io;unsigned i;uint32_t now=0;char tiny[2];
+ {
+  static const char *values[]={"0","1","30","1440","1441","-1","1.5","","99999","ON"};
+  uint8_t packet[180],ch;uint16_t minutes;size_t n;unsigned k,j;mttl_publish pub;
+  mttl_device_init(&app,1700000000);app.mqtt.session.state=MTTL_MQ_ONLINE;app.mqtt.session.desired=1;app.mqtt.phase=9;
+  for(k=0;k<4;k++){
+   char topic[100];snprintf(topic,sizeof(topic),"mttl/standalone/aabbccddeeff/timer%u/set",k+1);
+   for(j=0;j<10;j++){
+    n=mttl_mq_publish_packet(packet,sizeof(packet),topic,(const uint8_t *)values[j],strlen(values[j]),0);
+    check(mttl_mq_timer_command(&app.mqtt.session,0,"mttl/standalone/aabbccddeeff",packet,n,&ch,&minutes)==(j<4));
+    if(j<4){check(ch==k);check(mttl_device_timer_command(&app,ch,minutes));check(app.settings.timer_minutes[k]==minutes);}
+    packet[0]|=1;check(!mttl_mq_timer_command(&app.mqtt.session,0,"mttl/standalone/aabbccddeeff",packet,n,&ch,&minutes));
+   }
+  }
+  {
+   static const char *decimals[]={"30.0","1440.00","0.0","30.5",".0","30.","1e2"};
+   for(k=0;k<7;k++){
+    n=mttl_mq_publish_packet(packet,sizeof(packet),"mttl/standalone/aabbccddeeff/timer1/set",(const uint8_t *)decimals[k],strlen(decimals[k]),0);
+    check(mttl_mq_timer_command(&app.mqtt.session,0,"mttl/standalone/aabbccddeeff",packet,n,&ch,&minutes)==(k<3));
+    check(!mttl_mq_timer_command(&app.mqtt.session,1,"mttl/standalone/aabbccddeeff",packet,n,&ch,&minutes));
+   }
+  }
+  mttl_settings_default(&app.settings);app.settings.schedule.rules[0].mode=1;app.settings.schedule.rules[0].channel=0;
+  check(!mttl_device_timer_command(&app,0,30));check(app.settings.timer_minutes[0]==0);
+  check(mttl_device_timer_command(&app,0,0));check(mttl_device_timer_command(&app,1,30));
+  app.settings.schedule.rules[0].channel=4;app.settings.timer_minutes[1]=0;
+  for(k=0;k<4;k++)check(!mttl_device_timer_command(&app,k,10));
+  app.control.known_mask=15;app.mqtt_known=15;app.mqtt_all=1;app.mqtt_timer_known=0;app.mqtt_remaining_known=15;
+  for(k=0;k<4;k++){
+   app.mqtt.tx_size=app.mqtt.tx_sent=0;mttl_device_tick(&app,"aabbccddeeff",1,1000+k*500,0);
+   check(mttl_parse_publish(app.mqtt.tx,app.mqtt.tx_size,&pub));check(pub.retained&&pub.payload_size==1&&pub.payload[0]=='0');
+  }
+  check(app.mqtt_timer_known==15);
+ }
+ sensor_policy_test();remaining_test();remaining_cadence_test();
  memset(&b,0,sizeof(b));mttl_settings_default(&s);strcpy(s.broker,"192.168.0.4");s.mqtt_enabled=1;
- for(i=0;i<25;i++)check(mttl_ha_discovery(&s,"aabbccddeeff",i,mttl_test_ha_topics[i],128,mttl_test_ha_json[i],768)>0);
- for(i=0;i<25;i++)check(i<5?!strstr(mttl_test_ha_json[i],"\"exp_aft\""):strstr(mttl_test_ha_json[i],"\"exp_aft\":30,")!=0);
- check(!mttl_ha_discovery(&s,"bad",0,tiny,2,tiny,2));check(!mttl_ha_discovery(&s,"aabbccddeeff",25,tiny,2,tiny,2));
+ for(i=0;i<33;i++)check(mttl_ha_discovery(&s,"aabbccddeeff",i,mttl_test_ha_topics[i],128,mttl_test_ha_json[i],768)>0);
+ for(i=0;i<33;i++)check((i<5||i>=25)?!strstr(mttl_test_ha_json[i],"\"exp_aft\""):strstr(mttl_test_ha_json[i],"\"exp_aft\":600,")!=0);
+ check(!mttl_ha_discovery(&s,"bad",0,tiny,2,tiny,2));check(!mttl_ha_discovery(&s,"aabbccddeeff",33,tiny,2,tiny,2));
  {char json[768],topic[128];uint8_t packet[1024];size_t n;memset(s.device,'"',64);s.device[64]=0;memset(s.topic,'x',64);s.topic[64]=0;
  n=mttl_ha_discovery(&s,"aabbccddeeff",0,topic,sizeof(topic),json,sizeof(json));check(n>0);check(mttl_mq_publish_packet(packet,sizeof(packet),topic,(const uint8_t *)json,n,1)>0);mttl_settings_default(&s);strcpy(s.broker,"192.168.0.4");s.mqtt_enabled=1;}
- memset(&io,0,sizeof(io));io.context=&b;io.command_context=&b;io.open=open_mock;io.close=close_mock;io.send=send_mock;io.receive=recv_mock;io.command=command_mock;mttl_mqtt_engine_init(&e);
+ memset(&io,0,sizeof(io));io.context=&b;io.command_context=&b;io.timer_command=0;io.open=open_mock;io.close=close_mock;io.send=send_mock;io.receive=recv_mock;io.command=command_mock;mttl_mqtt_engine_init(&e);
  for(i=0;i<4000&&e.session.state!=MTTL_MQ_ONLINE;i++,now++)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,now,&io);
- check(e.session.state==MTTL_MQ_ONLINE);check(b.discovery==25&&b.online==1);
+ check(e.session.state==MTTL_MQ_ONLINE);check(b.discovery==33&&b.online==1);
  b.rx_n=mttl_mq_publish_packet(b.rx,512,"mttl/standalone/aabbccddeeff/4/set",(const uint8_t *)"ON",2,0);
  mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,++now,&io);check(b.commands==1);
+ io.timer_command=timer_mock;timer_calls=0;
+ b.rx_n=mttl_mq_publish_packet(b.rx,512,"mttl/standalone/aabbccddeeff/timer3/set",(const uint8_t *)"30.0",4,0);
+ mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,++now,&io);check(timer_calls==1&&b.commands==1);
+ b.rx_n=mttl_mq_publish_packet(b.rx,512,"mttl/standalone/aabbccddeeff/timer3/set",(const uint8_t *)"30",2,1);
+ mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,++now,&io);check(timer_calls==1);
  b.rx_n=mttl_mq_publish_packet(b.rx,512,"homeassistant/status",(const uint8_t *)"online",6,1);
- for(i=0;i<4000&&b.online<2;i++,now++)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,now,&io);check(b.discovery==50&&b.online==2);
+ for(i=0;i<4000&&b.online<2;i++,now++)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,now,&io);check(b.discovery==66&&b.online==2);
  b.rx_n=mttl_mq_publish_packet(b.rx,512,"mttl/standalone/aabbccddeeff/4/set",(const uint8_t *)"ON",2,1);
  mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,++now,&io);check(b.commands==1);
  now+=21000;for(i=0;i<5;i++)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,now+i,&io);check(b.pings==1&&!e.ping_wait);
@@ -55,16 +239,16 @@ void mttl_integration_test(void){mttl_settings s;mttl_mqtt_engine e;mttl_mqtt_io
  /* Full connect/delete/fence/disconnect with seven-byte partial sends. */
  memset(&b,0,sizeof(b));mttl_mqtt_engine_init(&e);s.mqtt_enabled=0;
  for(i=0;i<4000&&!e.cleanup_done;i++)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,2,i,&io);
- check(e.cleanup_done&&b.deletions==26&&!b.discovery&&!b.online&&b.pings==1);
+ check(e.cleanup_done&&b.deletions==34&&!b.discovery&&!b.online&&b.pings==1);
  mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,2,i+1,&io);
  check(b.closed==1&&e.session.state==MTTL_MQ_OFF);
  s.mqtt_enabled=1;
  for(now=i+2;now<i+4000&&e.session.state!=MTTL_MQ_ONLINE;now++)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,3,now,&io);
- check(e.session.state==MTTL_MQ_ONLINE&&b.discovery==25&&b.online==1);
+ check(e.session.state==MTTL_MQ_ONLINE&&b.discovery==33&&b.online==1);
  /* Missing fence response must retry, not mark cleanup complete. */
  s.mqtt_enabled=0;b.drop_ping=1;
  for(i=0;i<14000;i+=10)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,4,now+i,&io);
- check(!e.cleanup_done&&b.closed>1&&b.deletions>=52);
+ check(!e.cleanup_done&&b.closed>1&&b.deletions>=68);
  s.mqtt_enabled=1;
  mttl_device_init(&app,1700000000);check(!app.hardware.verified&&!mttl_device_command(&app,0,1));
  check(!mttl_hardware_begin(&app.hardware,0,1));
@@ -162,7 +346,7 @@ void mttl_integration_test(void){mttl_settings s;mttl_mqtt_engine e;mttl_mqtt_io
  mttl_device_init(&app,1700000000);strcpy(app.settings.wifi_password,"wifi-secret");strcpy(app.settings.mqtt_password,"mqtt-secret");
  }
  check(mttl_device_settings_json(&app,mttl_test_config_json,sizeof(mttl_test_config_json))>0);
- {mttl_publish message;mttl_device_init(&app,1700000000);app.mqtt.session.state=MTTL_MQ_ONLINE;
+ {mttl_publish message;mttl_device_init(&app,1700000000);app.mqtt_timer_known=15;app.mqtt_remaining_known=15;app.mqtt.session.state=MTTL_MQ_ONLINE;
   app.control.known_mask=app.mqtt_known=15;app.mqtt_all=1;
   check(!mttl_device_mqtt_pending(&app));
   app.control.on_mask=app.mqtt_on=15;check(mttl_device_mqtt_pending(&app));
@@ -190,7 +374,7 @@ void mttl_integration_test(void){mttl_settings s;mttl_mqtt_engine e;mttl_mqtt_io
   mttl_device_tick(&app,"aabbccddeeff",1,200,0);
   check(mttl_parse_publish(app.mqtt.tx,app.mqtt.tx_size,&message));
   check(message.topic_size>=4&&!memcmp(message.topic+message.topic_size-4,"/sw1",4));
-  app.mqtt.tx_size=0;mttl_device_tick(&app,"aabbccddeeff",1,400,0);
+  app.mqtt.tx_size=0;mttl_device_tick(&app,"aabbccddeeff",1,1000,0);
   check(!app.mqtt.tx_size);
   check(app.publish_index==21); /* Invalid sensor still advances rotation. */
   app.control.on_mask=3;mttl_device_tick(&app,"aabbccddeeff",1,401,0);
@@ -202,8 +386,8 @@ void mttl_integration_test(void){mttl_settings s;mttl_mqtt_engine e;mttl_mqtt_io
   check(app.publish_index==21); /* Consecutive switch completions never rewind. */
   /* Sensors remain transient; retained stale measurements must not be replayed. */
   app.mqtt.tx_size=0;app.mqtt_on=app.control.on_mask;app.mqtt_all=1;
-  app.publish_index=5;mttl_sample_update(&app.samples.total_power,1234,1,700);
-  mttl_device_tick(&app,"aabbccddeeff",1,700,0);
+  app.publish_index=5;mttl_sample_update(&app.samples.total_power,1234,1,1700);
+  mttl_device_tick(&app,"aabbccddeeff",1,1700,0);
   check(mttl_parse_publish(app.mqtt.tx,app.mqtt.tx_size,&message));
   check(!(app.mqtt.tx[0]&1));
   /* A HA birth rediscovery also schedules unchanged confirmed states again. */

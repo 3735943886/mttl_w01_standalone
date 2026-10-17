@@ -14,6 +14,15 @@ typedef struct {
     uint8_t mqtt_known,mqtt_on,mqtt_all,mqtt_was_online;
     mttl_protection_state protection;
     mttl_timer_state timers;
+    int (*timer_request)(uint8_t,uint16_t);
+    uint16_t mqtt_timer_minutes[4];
+    uint8_t mqtt_timer_known;
+    uint32_t mqtt_remaining_at[4],mqtt_remaining_deadline[4];
+    uint8_t mqtt_remaining_known,mqtt_remaining_running;
+    /* Raw integers map exactly to fixed MQTT decimal precision (no rounding).
+     * Only accepted packets update these volatile, CPU-only caches. */
+    int32_t mqtt_sensor_value[MTTL_HA_SENSOR_COUNT];
+    uint32_t mqtt_sensor_at[MTTL_HA_SENSOR_COUNT],mqtt_sensor_known;
 } mttl_device_app;
 /* Queued state is not yet transmitted. Keep the socket owner ahead of
  * slow meter/NOR work until channel and aggregate confirmations drain. */
@@ -27,8 +36,12 @@ void mttl_device_init(mttl_device_app *,uint64_t reference_time);
 /* Flash workspace supplied only by a future serialized persistence owner. */
 int mttl_device_load(mttl_device_app *,const mttl_settings_io *,mttl_config_workspace *);
 int mttl_device_configure(mttl_device_app *,const uint8_t *,size_t,const mttl_settings_io *,mttl_config_workspace *);
+int mttl_device_timer_command(void *,uint8_t,uint16_t);
 int mttl_device_command(void *,uint8_t,uint8_t);
 void mttl_device_button(mttl_device_app *,unsigned button,int down,uint32_t now);
+/* One current remaining-time packet per call: running every 5 seconds, idle only on
+ * transitions/session synchronization. Retry busy queues without catching up. */
+int mttl_device_publish_remaining(mttl_device_app *,const char *,uint32_t);
 void mttl_device_tick(mttl_device_app *,const char *id,int network,uint32_t now,const mttl_mqtt_io *);
 /* JSON projection includes no password. Raw sample contract:
  * power mW, meter Wh, current mA, temperature/voltage tenths. */

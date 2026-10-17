@@ -39,7 +39,8 @@ void mttl_mqtt_engine_step(mttl_mqtt_engine *e,const mttl_settings *s,const char
         else if(e->session.state==MTTL_MQ_ONLINE&&s->mqtt_enabled){
             if(e->rx.total==2&&e->rx.bytes[0]==0xd0&&e->rx.bytes[1]==0)e->ping_wait=0;
             else if(mttl_mq_command(&e->session,e->session.generation,base,e->rx.bytes,e->rx.total,&command)){if(io->command)io->command(io->command_context,command.channel,command.on);}
-            else{mttl_publish p;if(mttl_parse_publish(e->rx.bytes,e->rx.total,&p)&&p.topic_size==20&&!memcmp(p.topic,"homeassistant/status",20)&&p.payload_size==6&&!memcmp(p.payload,"online",6)){e->rediscover=1;e->entity=0;}}
+            else{uint8_t ch;uint16_t minutes;mttl_publish p;if(mttl_mq_timer_command(&e->session,e->session.generation,base,e->rx.bytes,e->rx.total,&ch,&minutes)){if(io->timer_command)io->timer_command(io->command_context,ch,minutes);}
+            else if(mttl_parse_publish(e->rx.bytes,e->rx.total,&p)&&p.topic_size==20&&!memcmp(p.topic,"homeassistant/status",20)&&p.payload_size==6&&!memcmp(p.payload,"online",6)){e->rediscover=1;e->entity=0;}}
         }else if(e->session.state!=MTTL_MQ_SYNCING){failed(e,now);return;}mttl_mq_rx_reset(&e->rx);
     }
     if(e->phase>=10){

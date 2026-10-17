@@ -15,3 +15,17 @@ int mttl_mq_command(const mttl_mqtt_session *s,uint32_t generation,const char *p
     else return 0;
     out->channel=channel;out->on=on;return 1;
 }
+
+int mttl_mq_timer_command(const mttl_mqtt_session *s,uint32_t generation,const char *prefix,const uint8_t *frame,size_t size,uint8_t *channel,uint16_t *minutes){
+ mttl_publish p;size_t n=0,i,digits;unsigned value=0;
+ if(!s||!prefix||!channel||!minutes||!mttl_parse_publish(frame,size,&p)||!mttl_mq_can_command(s,generation,p.retained))return 0;
+ while(n<128&&prefix[n])++n;
+ if(!n||n==128||p.topic_size!=n+11)return 0;
+ for(i=0;i<n;i++)if(p.topic[i]!=(uint8_t)prefix[i])return 0;
+ if(p.topic[n]!='/'||p.topic[n+1]!='t'||p.topic[n+2]!='i'||p.topic[n+3]!='m'||p.topic[n+4]!='e'||p.topic[n+5]!='r'||p.topic[n+6]<'1'||p.topic[n+6]>'4'||p.topic[n+7]!='/'||p.topic[n+8]!='s'||p.topic[n+9]!='e'||p.topic[n+10]!='t')return 0;
+ if(!p.payload_size||p.payload_size>8)return 0;
+ digits=p.payload_size;for(i=0;i<p.payload_size;i++)if(p.payload[i]=='.'){size_t j;digits=i;if(!i||i+1==p.payload_size)return 0;for(j=i+1;j<p.payload_size;j++)if(p.payload[j]!='0')return 0;break;}
+ if(digits>4)return 0;
+ for(i=0;i<digits;i++){if(p.payload[i]<'0'||p.payload[i]>'9')return 0;value=value*10+p.payload[i]-'0';}
+ if(value>1440)return 0;*channel=p.topic[n+6]-'1';*minutes=(uint16_t)value;return 1;
+}

@@ -10,9 +10,17 @@ size_t mttl_ha_discovery(const mttl_settings *s,const char *id,unsigned index,ch
     static const char *channel_labels[]={"Power","Meter","Current","Temperature"};
     static const char *classes[]={"power","energy","voltage","current","temperature"};
     static const char *units[]={"W","kWh","V","A","°C"};
-    char base[96],key[24],name[132],device[132],extra[220],display[80];const char *component=index<5?"switch":"sensor";const char *short_id;int n,channel=-1;unsigned kind=0;
+    char base[96],key[24],name[132],device[132],extra[220],display[80];const char *component=index<5?"switch":(index<25||index>=29)?"sensor":"number";const char *short_id;int n,channel=-1;unsigned kind=0;
     if(!topic||!json||index>=MTTL_HA_ENTITIES||!mttl_ha_base(s,id,base,sizeof(base)))return 0;
-    if(index<5){
+    if(index>=29){
+        channel=(int)index-29;snprintf(key,sizeof(key),"timer_remaining%u",(unsigned)channel+1);
+        snprintf(display,sizeof(display),"%s Timer Remaining",s->channel[channel]);if(!quote(display,name,sizeof(name)))return 0;
+        n=snprintf(extra,sizeof(extra),"\"dev_cla\":\"duration\",\"unit_of_meas\":\"s\",\"suggested_display_precision\":0,");
+    }else if(index>=25){
+        channel=(int)index-25;snprintf(key,sizeof(key),"timer%u",(unsigned)channel+1);
+        snprintf(display,sizeof(display),"%s Auto OFF Timer",s->channel[channel]);if(!quote(display,name,sizeof(name)))return 0;
+        n=snprintf(extra,sizeof(extra),"\"cmd_t\":\"~/%s/set\",\"min\":0,\"max\":1440,\"step\":1,\"mode\":\"box\",\"unit_of_meas\":\"min\",\"optimistic\":false,\"retain\":false,\"ent_cat\":\"config\",",key);
+    }else if(index<5){
         if(!index){strcpy(key,"all");if(!quote("SW All",name,sizeof(name)))return 0;}
         else{channel=(int)index-1;snprintf(key,sizeof(key),"sw%u",index);if(!quote(s->channel[channel],name,sizeof(name)))return 0;}
         n=snprintf(extra,sizeof(extra),"\"cmd_t\":\"~/%s/set\",\"pl_on\":\"ON\",\"pl_off\":\"OFF\",\"optimistic\":false,",index?key+2:"all");
@@ -21,11 +29,11 @@ size_t mttl_ha_discovery(const mttl_settings *s,const char *id,unsigned index,ch
         else{unsigned metric=(index-9)%4;channel=(int)((index-9)/4);kind=metric==2?3:metric==3?4:metric;snprintf(key,sizeof(key),"%s%u",classes[kind],(unsigned)channel+1);if(metric==1)snprintf(key,sizeof(key),"meter%u",(unsigned)channel+1);}
         if(channel<0){if(!quote(labels[index-5],name,sizeof(name)))return 0;}
         else{snprintf(display,sizeof(display),"%s %s",s->channel[channel],channel_labels[(index-9)%4]);if(!quote(display,name,sizeof(name)))return 0;}
-        n=snprintf(extra,sizeof(extra),"\"dev_cla\":\"%s\",\"stat_cla\":\"%s\",\"unit_of_meas\":\"%s\",\"exp_aft\":30,",classes[kind],kind==1?"total_increasing":"measurement",units[kind]);
+        n=snprintf(extra,sizeof(extra),"\"dev_cla\":\"%s\",\"stat_cla\":\"%s\",\"unit_of_meas\":\"%s\",\"exp_aft\":%u,",classes[kind],kind==1?"total_increasing":"measurement",units[kind],MTTL_HA_SENSOR_EXPIRE_SECONDS);
     }
     if(n<0||(size_t)n>=sizeof(extra))return 0;
     short_id=id+5;if(!quote(s->device,device,sizeof(device)))return 0;
     n=snprintf(topic,tcap,"homeassistant/%s/mttl_%s_%s/config",component,short_id,key);if(n<0||(size_t)n>=tcap)return 0;
-    n=snprintf(json,cap,"{\"~\":\"%s\",\"name\":%s,\"uniq_id\":\"mttl_%s_%s\",\"default_entity_id\":\"%s.mttl_%s_%s\",\"en\":true,\"stat_t\":\"~/%s\",\"avty_t\":\"~/availability\",%s\"dev\":{\"ids\":[\"mttl_%s\"],\"name\":%s,\"mdl\":\"MTTL-W01\",\"mf\":\"LG U+\",\"sw\":\"2.0.14\"}}",base,name,short_id,key,component,short_id,key,index==5?"power":key,extra,short_id,device);
+    n=snprintf(json,cap,"{\"~\":\"%s\",\"name\":%s,\"uniq_id\":\"mttl_%s_%s\",\"default_entity_id\":\"%s.mttl_%s_%s\",\"en\":true,\"stat_t\":\"~/%s\",\"avty_t\":\"~/availability\",%s\"dev\":{\"ids\":[\"mttl_%s\"],\"name\":%s,\"mdl\":\"MTTL-W01\",\"mf\":\"LG U+\",\"sw\":\"2.0.15\"}}",base,name,short_id,key,component,short_id,key,index==5?"power":key,extra,short_id,device);
     if(n<0||(size_t)n>=cap)return 0;return (size_t)n;
 }

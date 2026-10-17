@@ -28,3 +28,14 @@ Displays total power/energy/voltage/current and per-channel power/energy/current
 Enable MQTT in the device web UI first to create HA Discovery entities. Default entity IDs are required, for example `switch.mttl_97c0123_sw1` and `sensor.mttl_97c0123_current1`. Manually renamed entity IDs will not map automatically.
 
 When migrating from the old card, update both the resource URL and YAML `type`. Continuing to use the existing 1.0.68 card is also supported.
+
+## Remaining time and timer settings (2.0.15)
+
+Each channel shows a single `Timer` row.
+
+- Displays `sensor.mttl_<last 7 MAC digits>_timer_remaining1` through `timer_remaining4` as `HH:MM:SS`. Updates about every five seconds while running; idle, expired or cancelled timers show `00:00:00`. The card does not simulate a countdown.
+- Tap the row to open HA's native more-info dialog for the matching `number.mttl_<last 7 MAC digits>_timer1` through `timer4`. View and set the configured **0..1440 minutes** there; zero disables the timer.
+- A missing, unknown or unavailable remaining-time sensor displays `—`. The row is enabled whenever the matching number is available, so settings remain accessible independently of the sensor state.
+- Requires firmware with timer Discovery and default entity IDs. A schedule-owned channel rejects nonzero timer settings and keeps its configured timer at zero.
+
+Replace the JS and update the existing resource URL to `/local/mttl-w01-2.0-card.js?v=2.0.15-timer-label`, then refresh. Keep the existing YAML `type` and `mac`. Firmware files are unchanged.

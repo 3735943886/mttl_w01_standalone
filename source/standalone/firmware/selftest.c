@@ -41,7 +41,7 @@ static int cleanup_receive(void *p,uint8_t *bytes,size_t n){(void)p;(void)n;
 }
 static void cleanup_test(void){
     static mttl_mqtt_engine e;static mttl_settings s;
-    mttl_mqtt_io io={0,cleanup_open,cleanup_close,cleanup_send,cleanup_receive,0,0};unsigned i;
+    mttl_mqtt_io io={0,cleanup_open,cleanup_close,cleanup_send,cleanup_receive,0,0,0};unsigned i;
     mttl_settings_default(&s);memcpy(s.broker,"broker",7);s.mqtt_enabled=0;
     mttl_mqtt_engine_init(&e);e.session.state=MTTL_MQ_ONLINE;e.session.desired=1;e.phase=9;
     cleanup_deletes=cleanup_closed=cleanup_ping=cleanup_ack=cleanup_bad=0;

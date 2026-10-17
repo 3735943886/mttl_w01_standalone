@@ -6,7 +6,7 @@ Project-authored code is available under the [MIT License](LICENSE). Third-party
 
 ## Firmware Builder 1.0.0 and source
 
-[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.14 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.14)
+[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.15 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.15)
 
 [Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
 
@@ -26,17 +26,25 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ### Firmware download
 
-**2.0.14 / build `bde584ccbe78cbce` · October 17, 2026**
+**2.0.15 / build `552f007895f9d4f0` · October 17, 2026**
 
-[Download comMTTL-W01_2.0.14.fwr](firmware/comMTTL-W01_2.0.14.fwr)
+[Download comMTTL-W01_2.0.15.fwr](firmware/comMTTL-W01_2.0.15.fwr)
 
-SHA-256: `d156330522b931bfd8c3efbc2a71ba5e6cfb759bdd2e462a7154fd4e67d36fb1`
+SHA-256: `2675c5fe4e714023887f7ededbceb56b2338a7178eedfdf9eb270828e7fa9ffc`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
 Compatibility with every hardware variant is not guaranteed. Failed installation
 may require debugger recovery. Software protection cannot replace hardware safety devices.
 Power cutoff was verified on the test device using a 1000W threshold and a hair dryer load. Current/temperature cutoff and measurement accuracy still require separate hardware verification.
+
+## 2.0.15 update
+
+- Adds four HA number entities for per-channel auto-OFF settings and four remaining-time sensors.
+- Remaining time publishes retained every five seconds while active and sends zero once on expiry/cancellation. No periodic idle publication.
+- Twenty measurement sensors check one slot every 500ms and publish only changed values. Fresh unchanged values heartbeat about every 300 seconds; HA expiry is 600 seconds.
+- The [HA card](ha-card/README_EN.md) shows one Timer row per channel: remaining time on screen, timer number settings on tap. Card picker name is MTTL-W01 2.0.15 Card; file name and YAML type stay unchanged.
+- Schedule-owned channels reject nonzero timer settings and republish their actual configured value of zero.
 
 ## Features
 
@@ -70,7 +78,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.14.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.0.15.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -198,7 +206,7 @@ OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart i
 
 ## Version History
 
-### 2.0.14 — October 17, 2026
+### 2.0.15 — October 17, 2026
 
 - Per-channel automatic OFF timers: 1 minute–24 hours, starting on OFF→ON; OFF cancels and the next ON starts a full duration
 - Timers and schedules cannot share a channel. ALL schedules occupy every channel; disabled schedules still reserve their targets until deleted

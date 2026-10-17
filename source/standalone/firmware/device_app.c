@@ -15,22 +15,47 @@ int mttl_device_configure(mttl_device_app *d,const uint8_t *body,size_t size,con
 done:for(i=0;i<sizeof(candidate);i++)p[i]=0;return result;
 }
 int mttl_device_command(void *context,uint8_t channel,uint8_t on){mttl_device_app *d=context;if(!d||!d->hardware.verified||!d->hardware.write)return 0;if(d->relay_request)return d->relay_request(channel,on);return mttl_request(&d->control,channel,on);}
+int mttl_device_timer_command(void *context,uint8_t channel,uint16_t minutes){
+ mttl_device_app *d=context;uint16_t previous;int ok;
+ if(!d||channel>3||minutes>1440)return 0;
+ if(d->timer_request){ok=d->timer_request(channel,minutes);if(!ok)d->mqtt_timer_known&=~(1u<<channel);return ok;}
+ previous=d->settings.timer_minutes[channel];d->settings.timer_minutes[channel]=minutes;
+ ok=mttl_settings_valid(&d->settings);if(!ok)d->settings.timer_minutes[channel]=previous;
+ d->mqtt_timer_known&=~(1u<<channel);return ok;
+}
 void mttl_device_button(mttl_device_app *d,unsigned button,int down,uint32_t now){
     int event;if(button>4)return;if(!button){event=mttl_button_edge(&d->main_button,down!=0,now);if(event==2)d->provision_requested=1;else if(event==1&&d->control.known_mask==15)mttl_device_command(d,MTTL_ALL,d->control.on_mask!=15);}
     else{unsigned ch=button-1;event=mttl_button_edge(&d->channel_button[ch],down!=0,now);if(event&&(d->control.known_mask&(1u<<ch)))mttl_device_command(d,(uint8_t)ch,!(d->control.on_mask&(1u<<ch)));}
+}
+int mttl_device_publish_remaining(mttl_device_app *d,const char *id,uint32_t now){
+ char base[96],topic[128],payload[16];unsigned ch,bit,active;uint32_t remaining;
+ if(d->mqtt.tx_size||d->mqtt.rediscover||!mttl_ha_base(&d->settings,id,base,sizeof(base)))return 0;
+ for(ch=0;ch<4;ch++){
+  bit=1u<<ch;remaining=mttl_timer_remaining(&d->timers,ch,now);active=remaining!=0;
+  if((d->mqtt_remaining_known&bit)&&active==((d->mqtt_remaining_running&bit)!=0)&&
+     (!active||(d->mqtt_remaining_deadline[ch]==d->timers.deadline[ch]&&(uint32_t)(now-d->mqtt_remaining_at[ch])<5000u)))continue;
+  snprintf(topic,sizeof(topic),"%s/timer_remaining%u",base,ch+1);snprintf(payload,sizeof(payload),"%lu",(unsigned long)remaining);
+  /* Retain the final zero so idle sensors also initialize after HA reload.
+   * Shared device availability covers disconnects; no idle expiry/heartbeat. */
+  if(!mttl_mqtt_engine_publish(&d->mqtt,topic,(const uint8_t *)payload,strlen(payload),1,now))return 0;
+  d->mqtt_remaining_known|=bit;d->mqtt_remaining_running=(d->mqtt_remaining_running&~bit)|(active?bit:0);
+  d->mqtt_remaining_deadline[ch]=d->timers.deadline[ch];d->mqtt_remaining_at[ch]=now;return 1;
+ }
+ return 0;
 }
 void mttl_device_tick(mttl_device_app *d,const char *id,int network,uint32_t now,const mttl_mqtt_io *io){
     mttl_output output={&d->hardware,mttl_hardware_begin,mttl_hardware_end};
     if(!d->relay_request&&d->hardware.verified&&d->hardware.write)mttl_control_tick(&d->control,&output,now);
     mttl_ntp_link(&d->ntp,network,now);
-    if(io){mttl_mqtt_io bound=*io;bound.command=mttl_device_command;bound.command_context=d;mttl_mqtt_engine_step(&d->mqtt,&d->settings,id,network,d->revision,now,&bound);}
-    if(d->mqtt.session.state!=MTTL_MQ_ONLINE||d->mqtt.rediscover){d->mqtt_known=d->mqtt_all=d->mqtt_was_online=0;}
+    if(io){mttl_mqtt_io bound=*io;bound.command=mttl_device_command;bound.timer_command=mttl_device_timer_command;bound.command_context=d;mttl_mqtt_engine_step(&d->mqtt,&d->settings,id,network,d->revision,now,&bound);}
+    if(d->mqtt.session.state!=MTTL_MQ_ONLINE||d->mqtt.rediscover){d->mqtt_known=d->mqtt_all=d->mqtt_was_online=d->mqtt_timer_known=d->mqtt_remaining_known=0;d->mqtt_sensor_known=0;}
     else{unsigned dirty=(d->control.known_mask&~d->mqtt_known)|((d->control.on_mask^d->mqtt_on)&d->control.known_mask);
-      if(dirty||!d->mqtt_all||(uint32_t)(now-d->publish_at)>=200){publish_sample(d,id,now);d->publish_at=now;}}
+      if(dirty||!d->mqtt_all){publish_sample(d,id,now);d->publish_at=now;}
+      else if(!mttl_device_publish_remaining(d,id,now)&&(uint32_t)(now-d->publish_at)>=MTTL_HA_SENSOR_CHECK_MS){publish_sample(d,id,now);d->publish_at=now;}}
 }
 static void publish_sample(mttl_device_app *d,const char *id,uint32_t now){
     static const char *keys[]={"power","meter","voltage","current"};
-    const mttl_sample *value=0;char base[96],topic[128],key[24],payload[24];unsigned index=d->publish_index,metric,ch;int32_t raw;unsigned scale=1000;uint32_t magnitude;
+    const mttl_sample *value=0;char base[96],topic[128],key[24],payload[24];unsigned index=d->publish_index,metric,ch;int32_t raw=0;unsigned scale=1000;uint32_t magnitude;
     if(d->mqtt.tx_size||d->mqtt.rediscover||!mttl_ha_base(&d->settings,id,base,sizeof(base)))return;
     /* Completed relay changes precede the 25-entity sensor rotation. */
     {unsigned dirty=(d->control.known_mask&~d->mqtt_known)|((d->control.on_mask^d->mqtt_on)&d->control.known_mask);
@@ -40,16 +65,28 @@ static void publish_sample(mttl_device_app *d,const char *id,uint32_t now){
      else if(index<5)index=5;}
     /* Switch confirmations are out-of-band: never rewind sensor rotation.
      * Otherwise repeated sw1..sw4 changes starve late channel sensors. */
-    if(index>=5)d->publish_index=(uint8_t)(index+1<MTTL_HA_ENTITIES?index+1:5);
+    if(index>=5){for(ch=0;ch<4;ch++)if(!(d->mqtt_timer_known&(1u<<ch))||d->mqtt_timer_minutes[ch]!=d->settings.timer_minutes[ch]){
+        snprintf(topic,sizeof(topic),"%s/timer%u",base,ch+1);snprintf(payload,sizeof(payload),"%u",d->settings.timer_minutes[ch]);
+        if(mttl_mqtt_engine_publish(&d->mqtt,topic,(const uint8_t *)payload,strlen(payload),1,now)){d->mqtt_timer_known|=1u<<ch;d->mqtt_timer_minutes[ch]=d->settings.timer_minutes[ch];}return;
+    }}
+    if(index>=5)d->publish_index=(uint8_t)(index+1<MTTL_HA_SAMPLE_ENTITIES?index+1:5);
     if(index<5){if(!index){if(d->control.known_mask!=15)return;strcpy(key,"all");strcpy(payload,d->control.on_mask==15?"ON":"OFF");}
         else{ch=index-1;if(!(d->control.known_mask&(1u<<ch)))return;snprintf(key,sizeof(key),"sw%u",index);strcpy(payload,(d->control.on_mask&(1u<<ch))?"ON":"OFF");}}
     else{
         if(index<9){metric=index-5;value=metric==0?&d->samples.total_power:metric==1?&d->samples.total_meter:metric==2?&d->samples.voltage:&d->samples.total_current;strcpy(key,keys[metric]);if(metric==2)scale=10;}
         else{metric=(index-9)%4;ch=(index-9)/4;value=metric==0?&d->samples.power[ch]:metric==1?&d->samples.meter[ch]:metric==2?&d->samples.current[ch]:&d->samples.temperature[ch];snprintf(key,sizeof(key),"%s%u",metric==0?"power":metric==1?"meter":metric==2?"current":"temperature",ch+1);if(metric==3)scale=10;}
         if(!mttl_sample_read(value,now,MTTL_SENSOR_MAX_AGE_MS,&raw))return;
+        /* All scales preserve every raw integer in the emitted decimal. */
+        if((d->mqtt_sensor_known&(1u<<(index-5)))&&d->mqtt_sensor_value[index-5]==raw&&
+           (uint32_t)(now-d->mqtt_sensor_at[index-5])<MTTL_HA_SENSOR_HEARTBEAT_MS)return;
         magnitude=(uint32_t)(raw<0?-(int64_t)raw:raw);snprintf(payload,sizeof(payload),"%s%lu.%0*lu",raw<0?"-":"",(unsigned long)(magnitude/scale),scale==10?1:3,(unsigned long)(magnitude%scale));
     }
-    snprintf(topic,sizeof(topic),"%s/%s",base,key);if(mttl_mqtt_engine_publish(&d->mqtt,topic,(const uint8_t *)payload,strlen(payload),index<5,now)&&index<5){if(!index){d->mqtt_all=1;d->mqtt_was_online=d->control.on_mask==15;}else{unsigned bit=1u<<(index-1);d->mqtt_known|=bit;d->mqtt_on=(d->mqtt_on&~bit)|(d->control.on_mask&bit);}}
+    snprintf(topic,sizeof(topic),"%s/%s",base,key);
+    if(mttl_mqtt_engine_publish(&d->mqtt,topic,(const uint8_t *)payload,strlen(payload),index<5,now)){
+        if(index>=5){d->mqtt_sensor_value[index-5]=raw;d->mqtt_sensor_at[index-5]=now;d->mqtt_sensor_known|=1u<<(index-5);}
+        else if(!index){d->mqtt_all=1;d->mqtt_was_online=d->control.on_mask==15;}
+        else{unsigned bit=1u<<(index-1);d->mqtt_known|=bit;d->mqtt_on=(d->mqtt_on&~bit)|(d->control.on_mask&bit);}
+    }
 }
 static void sample(const mttl_sample *s,uint32_t now,char out[16]){int32_t value;if(mttl_sample_read(s,now,MTTL_SENSOR_MAX_AGE_MS,&value))snprintf(out,16,"%ld",(long)value);else strcpy(out,"null");}
 size_t mttl_device_status(const mttl_device_app *d,uint32_t now,char *out,size_t cap){
