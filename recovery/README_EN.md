@@ -58,7 +58,7 @@ The upper-right red circle is **VCC_5V**, not the nearby GND2 pad. The user conf
 2. Choose Korean/English at the top right. Language/mode changes and closing are blocked while a job runs.
 3. Select the safety-confirmation checkbox.
 4. The default is **diagnosis/double-backup only**. Initially use Start in this mode to check the connection and backups.
-5. For restoration, select **Restore stock firmware**, choose the reference FWR (prepared on first use), then Start. The remaining workflow is automatic.
+5. For restoration, select **Restore stock firmware** and click **Start**. The required stock firmware is prepared automatically, followed by backup, restoration, verification and reboot.
 6. Do not suspend the PC, disconnect power/USB or force-close the app once writing has begun. Stage/status and detailed logs show progress.
 7. On success, reset is requested after writing and full readback verification. Actual boot and setup AP must be checked separately. Use the stock main-button hold to enter provisioning.
 
