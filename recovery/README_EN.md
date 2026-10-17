@@ -25,7 +25,7 @@ This is for people capable of verifying power, ground, signal levels and solder 
 
 1. Get `MTTL-Recovery-1.0.0-Windows-x64.zip` and its checksum from [Recovery 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0).
 2. Extract the whole ZIP into a writable folder. Do not move the EXE alone. A short ASCII path such as `D:\MTTL-Recovery` is recommended.
-3. If necessary, install [ST's STSW-LINK009 USB driver](https://www.st.com/en/development-tools/stsw-link009.html). This tool does not install or replace USB drivers.
+3. If necessary, install [ST's STSW-LINK009 USB driver](https://www.st.com/en/development-tools/stsw-link009.html).
 4. Internet access is required on first use. Stock 1.0.66 FWR is included in the ZIP and used automatically without file selection. Only OpenOCD is downloaded from its official release. Both components are checked against pinned SHA-256 values. Sources/hashes are in [third-party notices](THIRD_PARTY_NOTICES.md).
 5. Keep the prepared folder for offline use. No permanent PATH/environment/registry changes, SDK/compiler or Python installation are required. Download restrictions or security policies stop preparation before target access; do not disable the entire firewall.
 

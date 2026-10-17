@@ -25,7 +25,7 @@
 
 1. [Recovery 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0)에서 `MTTL-Recovery-1.0.0-Windows-x64.zip`과 체크섬을 받습니다.
 2. ZIP의 전체 내용을 쓰기 가능한 폴더에 풉니다. EXE만 단독으로 옮기지 마십시오. `D:\MTTL-Recovery` 같은 짧은 영문 경로를 권장합니다.
-3. ST Link V2를 인식하지 못하면 [ST 공식 STSW-LINK009 드라이버](https://www.st.com/en/development-tools/stsw-link009.html)를 설치합니다. 이 프로그램이 드라이버를 설치하거나 교체하지는 않습니다.
+3. ST Link V2를 인식하지 못하면 [ST 공식 STSW-LINK009 드라이버](https://www.st.com/en/development-tools/stsw-link009.html)를 설치합니다.
 4. 최초 작업 시 인터넷이 필요합니다. 순정 1.0.66 FWR는 ZIP에 포함되어 있으며 파일 선택 없이 자동 사용합니다. OpenOCD만 공식 배포처에서 자동 다운로드합니다. 두 구성 모두 고정 SHA-256으로 검사합니다. 출처와 해시는 [제3자 안내](THIRD_PARTY_NOTICES.md)에 있습니다.
 5. 준비 후 해당 폴더를 유지하면 오프라인으로 사용할 수 있습니다. PATH·레지스트리·환경변수를 영구 변경하지 않으며 SDK·컴파일러·Python 설치도 필요하지 않습니다. 인터넷 제한·백신·보안 정책으로 다운로드가 실패하면 기기 연결 전에 중단합니다. 방화벽 전체 해제는 필요하지 않습니다.
 
