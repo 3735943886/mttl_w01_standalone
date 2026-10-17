@@ -6,6 +6,7 @@
 uint32_t mttl_sdk_ota_probe(void);
 int mttl_sdk_ota_begin(uint32_t,const uint8_t [32]);
 int mttl_sdk_ota_feed(const uint8_t *,size_t);
+/* 0 failed; 1 activated; 2 verified identical image, no activation required. */
 int mttl_sdk_ota_finish(void);
 int mttl_sdk_ota_restore_version(void);
 void mttl_sdk_ota_abort(void);

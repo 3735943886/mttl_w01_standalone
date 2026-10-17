@@ -2,7 +2,7 @@
 (function(){
  'use strict';
  const el=id=>document.getElementById(id);let ready=false,busy=false,result=null,detail='';
- const words={ko:['전원을 끄지 마세요. 지원: 독립 FWR, 순정 1.0.66, 로컬 패치 1.0.68. 복구 시 독립 웹·직접 HA 연결이 종료됩니다.','펌웨어 파일 (.fwr)','업데이트','업데이트 준비됨','업데이트 준비 안 됨','올바른 .fwr 파일을 선택해 주세요.','업로드 중… 전원을 끄지 마세요.','업데이트 완료. Wi-Fi로 다시 연결합니다.','결과를 확인할 수 없습니다. 재접속 후 확인하고 다시 시도하세요.','업데이트하고 재부팅할까요?\n1.0.66/1.0.68 복구 후에는 독립 웹·직접 HA 대신 기존 프로비저닝 또는 백엔드 연결이 필요합니다.','복구 완료. 기존 프로비저닝 또는 백엔드 연결을 확인하세요.'],en:['Keep power on. Supported: standalone FWR, stock 1.0.66 or local-patched 1.0.68. Restoring removes standalone web/direct HA.','Firmware file (.fwr)','Update','Ready to update','Not ready to update','Select a valid .fwr file.','Uploading… Keep power on.','Update completed. Reconnecting to Wi-Fi.','Result uncertain. Reconnect and check before retrying.','Update and restart?\nRestoring 1.0.66/1.0.68 removes standalone web/direct HA. Use original provisioning or backend connectivity afterwards.','Restore completed. Check original provisioning or backend connectivity.']};
+const words={ko:['전원을 끄지 마세요. 지원: 독립 FWR, 순정 1.0.66, 로컬 패치 1.0.68. 복구 시 독립 웹·직접 HA 연결이 종료됩니다.','펌웨어 파일 (.fwr)','업데이트','업데이트 준비됨','업데이트 준비 안 됨','올바른 .fwr 파일을 선택해 주세요.','업로드 중… 전원을 끄지 마세요.','업데이트 완료. Wi-Fi로 다시 연결합니다.','결과를 확인할 수 없습니다. 재접속 후 확인하고 다시 시도하세요.','업데이트하고 재부팅할까요?\n1.0.66/1.0.68 복구 후에는 독립 웹·직접 HA 대신 기존 프로비저닝 또는 백엔드 연결이 필요합니다.','복구 완료. 기존 프로비저닝 또는 백엔드 연결을 확인하세요.','이미 설치된 펌웨어입니다. 업데이트나 재부팅이 필요하지 않습니다.'],en:['Keep power on. Supported: standalone FWR, stock 1.0.66 or local-patched 1.0.68. Restoring removes standalone web/direct HA.','Firmware file (.fwr)','Update','Ready to update','Not ready to update','Select a valid .fwr file.','Uploading… Keep power on.','Update completed. Reconnecting to Wi-Fi.','Result uncertain. Reconnect and check before retrying.','Update and restart?\nRestoring 1.0.66/1.0.68 removes standalone web/direct HA. Use original provisioning or backend connectivity afterwards.','Restore completed. Check original provisioning or backend connectivity.','This firmware is already installed. No update or reboot is needed.']};
  function text(){return words[document.documentElement.lang==='en'?'en':'ko'];}
  const pendingKey='mttl.ota.pending-build';
  function remember(id){try{if(id)localStorage.setItem(pendingKey,id);else localStorage.removeItem(pendingKey);}catch(_){}}
@@ -19,6 +19,7 @@
   try{
    const response=await fetch('/api/firmware/upload',{method:'POST',headers:{'Content-Type':'application/x-mttl-fwr'},body:file,signal:controller.signal,credentials:'omit'});
    const raw=await response.text();let body;try{body=JSON.parse(raw);}catch(_){}
+   if(response.ok&&body?.already_installed===true){result=11;detail='';remember(null);return;}
    if(!response.ok||!body?.written||!body?.activated){
     const message=raw.slice(0,2048).replace(/<[^>]*>/g,' ').replace(/[\x00-\x1f\x7f]/g,' ').replace(/\s+/g,' ').trim().slice(0,400);
     detail='HTTP '+response.status+(message?' · '+message:' · Empty response');throw Error('Server response');

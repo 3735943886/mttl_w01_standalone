@@ -154,7 +154,8 @@ static void ota_upload(struct httpd_conn *c){
     if(!mttl_sdk_energy_barrier()){httpd_response_bad_request(c,"Owner checkpoint/hold failed");goto close;}
     if(!mttl_sdk_ota_begin(c->request.content_len,expected)){mttl_sdk_energy_release();httpd_response_bad_request(c,"Geometry or unique running slot not verified; no write");goto close;}
     while(received<c->request.content_len){size_t take=c->request.content_len-received,i;int n;if(take>sizeof(chunk))take=sizeof(chunk);n=httpd_request_read_data(c,chunk,take);if(n<=0||(size_t)n>take)goto fail;for(i=0;i<(size_t)n;i++){uint32_t at=received+i;if(at<16)key[at]=(uint8_t)((seed[at]^chunk[i])+1);else chunk[i]^=key[at&15];}if(!mttl_sdk_ota_feed(chunk,n))goto fail;received+=(uint32_t)n;}
-    if(!mttl_sdk_ota_finish())goto fail;
+    {int finished=mttl_sdk_ota_finish();if(!finished)goto fail;
+     if(finished==2){static const char same[]="{\"already_installed\":true,\"activated\":false,\"rebooting\":false}";mttl_sdk_energy_release();response(c,same,sizeof(same)-1,"application/json");goto close;}}
     {static const char done[]="{\"written\":true,\"activated\":true,\"rebooting\":true}";
      static const char stock[]="{\"written\":true,\"activated\":true,\"rebooting\":true,\"restore_version\":\"1.0.66\"}";
      static const char local[]="{\"written\":true,\"activated\":true,\"rebooting\":true,\"restore_version\":\"1.0.68\"}";

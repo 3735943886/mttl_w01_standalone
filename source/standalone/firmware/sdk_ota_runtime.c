@@ -119,10 +119,12 @@ static int ota_profile_present(void){
  return 0;
 }
 int mttl_sdk_ota_finish(void){
- mttl_ota_commit commit;uint32_t a,v,r;int legacy;
+ mttl_ota_commit commit;uint32_t a,v,r;int legacy,same;
  if(!authorized||!mttl_ota_session_finish(&session)){mttl_sdk_ota_abort();return 0;}
+ same=same_image(session.bytes,session.stage.expected);
+ if(same==1){mttl_sdk_ota_abort();return 2;}
  legacy=legacy_image();
- if(same_image(session.bytes,session.stage.expected)!=0||(!legacy&&!ota_profile_present())||mttl_sdk_ota_probe()!=active||
+ if(same<0||(!legacy&&!ota_profile_present())||mttl_sdk_ota_probe()!=active||
     !mttl_ota_commit_init(&commit,&layout,active,session.stage.plan.target,1)){mttl_sdk_ota_abort();return 0;}
  while(mttl_ota_commit_action(&commit,&a,&v)){int ok;r=0;ok=commit_word(a,v,&r);if(!mttl_ota_commit_ack(&commit,ok,r)){mttl_sdk_ota_abort();return 0;}}
  restored_version=(uint8_t)legacy;authorized=0;adapter.verified=0;return mttl_ota_commit_done(&commit);

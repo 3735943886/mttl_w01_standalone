@@ -26,11 +26,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ### Firmware download
 
-**2.0.15 / build `552f007895f9d4f0` · October 17, 2026**
+**2.0.15 / build `6c20881eb798b297` · October 17, 2026**
 
 [Download comMTTL-W01_2.0.15.fwr](firmware/comMTTL-W01_2.0.15.fwr)
 
-SHA-256: `2675c5fe4e714023887f7ededbceb56b2338a7178eedfdf9eb270828e7fa9ffc`
+SHA-256: `2aade58a6a649e59982e4a1faa01dbf7f7a06a87baee299c6fa7f68b002ded46`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -207,6 +207,9 @@ OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart i
 ## Version History
 
 ### 2.0.15 — October 17, 2026
+
+- Identical image uploads now show “This firmware is already installed” instead of a general OTA error, without reboot or activation (updated build `6c20881eb798b297`).
+- Version remains 2.0.15. Install this updated build first; subsequent duplicate uploads use the new message.
 
 - Per-channel automatic OFF timers: 1 minute–24 hours, starting on OFF→ON; OFF cancels and the next ON starts a full duration
 - Timers and schedules cannot share a channel. ALL schedules occupy every channel; disabled schedules still reserve their targets until deleted
