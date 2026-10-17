@@ -15,9 +15,11 @@ The developer accepts no responsibility for problems or consequences arising fro
 
 ![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
 
-## Prebuilt firmware — ready to install
+## Wired recovery — ST Link V2
 
 For wired recovery when web OTA is unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md). Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
+
+## Prebuilt firmware — ready to install
 
 Download and install the FWR below without building it yourself.
 
