@@ -70,10 +70,10 @@ The upper-right red circle is **VCC_5V**, not the nearby GND2 pad. The user conf
 4. Diagnose boot code, slots and protected boundaries. Failed/mismatching backups never permit writes.
 5. Generate a recovery image from that device's own dump, without importing donor identity data.
 6. Write/verify slot 2 and make it bootable before replacing/verifying slot 1. Final signatures: slot 1 NEW, slot 2 OLD.
-7. Clear standalone settings at **0xEE000–0xEFFFF**. Unknown data in settings-sector tails stops recovery.
+7. Clear standalone settings at **`0xEE000–0xEFFFF`**. Unknown data in settings-sector tails stops recovery.
 8. Read back the full flash and compare byte-for-byte with the expected image. Request reset only on an exact match.
 
-A full recovery image is generated, but only intended changed regions are programmed. 0x00000–0x0AFFF and 0xF0000–0xFFFFF are preserved. There is no mass-erase or donor-full-image operation. This does not directly clear the stock firmware's own registration information.
+A full recovery image is generated, but only intended changed regions are programmed. `0x00000–0x0AFFF` and `0xF0000–0xFFFFF` are preserved. There is no mass-erase or donor-full-image operation. This does not directly clear the stock firmware's own registration information.
 
 ## Backup and diagnostic files
 
