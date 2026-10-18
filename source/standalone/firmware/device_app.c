@@ -32,14 +32,15 @@ int mttl_device_publish_remaining(mttl_device_app *d,const char *id,uint32_t now
  if(d->mqtt.tx_size||d->mqtt.rediscover||!mttl_ha_base(&d->settings,id,base,sizeof(base)))return 0;
  for(ch=0;ch<4;ch++){
   bit=1u<<ch;remaining=mttl_timer_remaining(&d->timers,ch,now);active=remaining!=0;
+  if(!(d->timers.running&bit))remaining=(uint32_t)d->settings.timer_minutes[ch]*60u;
   if((d->mqtt_remaining_known&bit)&&active==((d->mqtt_remaining_running&bit)!=0)&&
-     (!active||(d->mqtt_remaining_deadline[ch]==d->timers.deadline[ch]&&(uint32_t)(now-d->mqtt_remaining_at[ch])<5000u)))continue;
+     ((!active&&d->mqtt_remaining_minutes[ch]==d->settings.timer_minutes[ch]&&d->mqtt_remaining_deadline[ch]==remaining)||(active&&d->mqtt_remaining_deadline[ch]==d->timers.deadline[ch]&&(uint32_t)(now-d->mqtt_remaining_at[ch])<5000u)))continue;
   snprintf(topic,sizeof(topic),"%s/timer_remaining%u",base,ch+1);snprintf(payload,sizeof(payload),"%lu",(unsigned long)remaining);
-  /* Retain the final zero so idle sensors also initialize after HA reload.
-   * Shared device availability covers disconnects; no idle expiry/heartbeat. */
+  /* Retain configured seconds while idle, countdown while running.
+   * Shared availability covers disconnects; unchanged idle values stay silent. */
   if(!mttl_mqtt_engine_publish(&d->mqtt,topic,(const uint8_t *)payload,strlen(payload),1,now))return 0;
   d->mqtt_remaining_known|=bit;d->mqtt_remaining_running=(d->mqtt_remaining_running&~bit)|(active?bit:0);
-  d->mqtt_remaining_deadline[ch]=d->timers.deadline[ch];d->mqtt_remaining_at[ch]=now;return 1;
+  d->mqtt_remaining_deadline[ch]=active?d->timers.deadline[ch]:remaining;d->mqtt_remaining_at[ch]=now;d->mqtt_remaining_minutes[ch]=d->settings.timer_minutes[ch];return 1;
  }
  return 0;
 }

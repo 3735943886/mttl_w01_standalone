@@ -33,7 +33,7 @@ When migrating from the old card, update both the resource URL and YAML `type`. 
 
 Each channel shows a single `Timer` row.
 
-- Displays `sensor.mttl_<last 7 MAC digits>_timer_remaining1` through `timer_remaining4` as `HH:MM:SS`. Updates about every five seconds while running; idle, expired or cancelled timers show `00:00:00`. The card does not simulate a countdown.
+- Displays `sensor.mttl_<last 7 MAC digits>_timer_remaining1` through `timer_remaining4` as `HH:MM:SS`, updating about every five seconds while running. With firmware 2.0.16 or later, OFF channels show their configured duration, or `00:00:00` when disabled. Firmware 2.0.15 shows `00:00:00` when idle, expired or cancelled. The card does not simulate a countdown. No card JS replacement is required for this firmware change.
 - Tap the row to open HA's native more-info dialog for the matching `number.mttl_<last 7 MAC digits>_timer1` through `timer4`. View and set the configured **0..1440 minutes** there; zero disables the timer.
 - A missing, unknown or unavailable remaining-time sensor displays `—`. The row is enabled whenever the matching number is available, so settings remain accessible independently of the sensor state.
 - Requires firmware with timer Discovery and default entity IDs. A schedule-owned channel rejects nonzero timer settings and keeps its configured timer at zero.

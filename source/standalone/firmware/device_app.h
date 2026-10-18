@@ -23,6 +23,7 @@ typedef struct {
      * Only accepted packets update these volatile, CPU-only caches. */
     int32_t mqtt_sensor_value[MTTL_HA_SENSOR_COUNT];
     uint32_t mqtt_sensor_at[MTTL_HA_SENSOR_COUNT],mqtt_sensor_known;
+    uint16_t mqtt_remaining_minutes[4]; /* Idle duration publication cache. */
 } mttl_device_app;
 /* Queued state is not yet transmitted. Keep the socket owner ahead of
  * slow meter/NOR work until channel and aggregate confirmations drain. */

@@ -141,7 +141,9 @@ static void remaining_test(void){
  /* Initial idle zero once/channel, then silence even if a duration is configured. */
  for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",100));remaining_check(ch,0);}
  for(k=1;k<10;k++)check(!mttl_device_publish_remaining(&app,"aabbccddeeff",100+k*1000));
- app.settings.timer_minutes[0]=90;check(!mttl_device_publish_remaining(&app,"aabbccddeeff",10000));
+ app.settings.timer_minutes[0]=90;check(mttl_device_publish_remaining(&app,"aabbccddeeff",10000));remaining_check(0,5400);
+ check(!mttl_device_publish_remaining(&app,"aabbccddeeff",10001));
+ for(ch=0;ch<4;ch++)app.settings.timer_minutes[ch]=90;
  /* Four simultaneous timers use independent 5-second clocks. No sensor cursor use. */
  mttl_timer_tick(&app.timers,minutes,15,15,11000);
  for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",11000));remaining_check(ch,5400);}
@@ -152,11 +154,13 @@ static void remaining_test(void){
  app.mqtt.tx_size=0;app.mqtt.rediscover=1;check(!mttl_device_publish_remaining(&app,"aabbccddeeff",21000));app.mqtt.rediscover=0;
  for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",26000));remaining_check(ch,5385);}
  check(!mttl_device_publish_remaining(&app,"aabbccddeeff",26000)); /* no delayed backlog */
- /* OFF/cancel sends zero once, while unchanged ON does not restart. */
+ /* OFF restores configured duration once, without periodic idle traffic. */
  mttl_timer_tick(&app.timers,minutes,15,0,26100);
- for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",26100));remaining_check(ch,0);}
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",26100));remaining_check(ch,5400);}
  check(!mttl_device_publish_remaining(&app,"aabbccddeeff",99999));
- minutes[0]=1;minutes[1]=minutes[2]=minutes[3]=0;mttl_timer_tick(&app.timers,minutes,15,1,100000);
+ minutes[0]=1;minutes[1]=minutes[2]=minutes[3]=0;for(ch=0;ch<4;ch++)app.settings.timer_minutes[ch]=minutes[ch];
+ for(ch=0;ch<4;ch++){check(mttl_device_publish_remaining(&app,"aabbccddeeff",99999));remaining_check(ch,ch?0:60);}
+ mttl_timer_tick(&app.timers,minutes,15,1,100000);
  check(mttl_device_publish_remaining(&app,"aabbccddeeff",100000));remaining_check(0,60);
  check(mttl_device_publish_remaining(&app,"aabbccddeeff",159000));remaining_check(0,1);
  check(mttl_device_publish_remaining(&app,"aabbccddeeff",160000));remaining_check(0,0);
@@ -169,7 +173,7 @@ static void remaining_test(void){
  minutes[0]=1440;mttl_timer_tick(&app.timers,minutes,15,1,at+5100);
  check(mttl_device_publish_remaining(&app,"aabbccddeeff",at+5100));remaining_check(0,86400);
  /* Removal stops publication even while the switch remains ON. */
- minutes[0]=0;mttl_timer_tick(&app.timers,minutes,15,1,at+5200);
+ minutes[0]=0;app.settings.timer_minutes[0]=0;mttl_timer_tick(&app.timers,minutes,15,1,at+5200);
  check(mttl_device_publish_remaining(&app,"aabbccddeeff",at+5200));remaining_check(0,0);
  check(!mttl_device_publish_remaining(&app,"aabbccddeeff",at+6200));
  /* HA birth/offline invalidate once-only state; reconnect reseeds idle zeros. */
@@ -425,3 +429,4 @@ void mttl_integration_test(void){mttl_settings s;mttl_mqtt_engine e;mttl_mqtt_io
  memset(&b,0,sizeof(b));mttl_mqtt_engine_init(&e);for(i=0;i<4000&&e.session.state!=MTTL_MQ_ONLINE;i++)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,i,&io);
  b.drop_ping=1;for(now=i+21000;now<i+32000;now+=100)mttl_mqtt_engine_step(&e,&s,"aabbccddeeff",1,1,now,&io);check(b.pings==1&&b.closed>0);
 }
+
