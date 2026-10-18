@@ -19,6 +19,8 @@ The developer accepts no responsibility for problems or consequences arising fro
 
 If a problem during a firmware update makes web OTA unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md) for wired recovery. Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
 
+![MTTL-W01 Recovery tool](recovery/docs/recovery-tool-1.0.0.png)
+
 ## Prebuilt firmware — ready to install
 
 Download and install the FWR below without building it yourself.
