@@ -6,6 +6,8 @@
 
 A portable Windows x64 tool for reading a **fully detached MTTL-W01 Wi-Fi board** over ST Link V2/SWD and restoring stock 1.0.66 while preserving a verified backup from that same device.
 
+![MTTL-W01 Recovery tool](docs/recovery-tool-1.0.0.png)
+
 ## Mandatory safety conditions
 
 **Unplugging the strip's mains cord alone is not sufficient. Fully disconnect the Wi-Fi board from the AC assembly and every interconnecting lead before connecting ST Link V2/USB/PC. Never connect the AC assembly and wired debug equipment together.**
