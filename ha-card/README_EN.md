@@ -2,7 +2,7 @@
 
 [한국어](README.md) | English
 
-A Lovelace card for standalone firmware 2.0.x. It retains the entity mapping and features of the backend 1.0.68 card, with separate 2.0 file and registration names. The card version does not need to match each firmware patch release.
+A Lovelace card for standalone firmware 2.0.x, displaying total/per-channel sensors and timers. The card version does not need to match each firmware patch release.
 
 ![Home Assistant card](HA_card.png)
 
@@ -27,7 +27,7 @@ Displays total power/energy/voltage/current and per-channel power/energy/current
 
 Enable MQTT in the device web UI first to create HA Discovery entities. Default entity IDs are required, for example `switch.mttl_97c0123_sw1` and `sensor.mttl_97c0123_current1`. Manually renamed entity IDs will not map automatically.
 
-When migrating from the old card, update both the resource URL and YAML `type`. Continuing to use the existing 1.0.68 card is also supported.
+When migrating from the old card, update both the resource URL and YAML `type`.
 
 ## Remaining time and timer settings (2.0.15)
 

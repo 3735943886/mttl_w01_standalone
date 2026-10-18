@@ -177,7 +177,7 @@ NTP 동기화 후 실행하며, 최초 동기화·재부팅·예약 설정 변�
 
 ## Home Assistant Lovelace 카드
 
-독립 펌웨어 2.0.x용 [MTTL-W01 2.0 카드 설치 안내](ha-card/README.md)를 참고하십시오. 전체·채널별 센서를 표시하며, 기존 백엔드 1.0.68용 카드와 동일한 엔티티 ID를 사용합니다.
+독립 펌웨어 2.0.x용 [MTTL-W01 2.0 카드 설치 안내](ha-card/README.md)를 참고하십시오. 전체·채널별 센서와 타이머를 표시합니다.
 
 ![MTTL-W01 2.0 Home Assistant Lovelace 카드](ha-card/HA_card.png)
 
