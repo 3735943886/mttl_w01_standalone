@@ -6,7 +6,7 @@ Project-authored code is available under the [MIT License](LICENSE). Third-party
 
 ## Firmware Builder 1.0.0 and source
 
-[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.16 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.16)
+[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.17 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.17)
 
 [Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
 
@@ -32,11 +32,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ### Firmware download
 
-**2.0.16 / build `b7ebaf1e5faa6a1a` · October 18, 2026**
+**2.0.17 / build `981749bcbdfe3915` · October 18, 2026**
 
-[Download comMTTL-W01_2.0.16.fwr](firmware/comMTTL-W01_2.0.16.fwr)
+[Download comMTTL-W01_2.0.17.fwr](firmware/comMTTL-W01_2.0.17.fwr)
 
-SHA-256: `700820e59ec73bd9a3c8d23e67180e06aad9fff54346cb0a7c3f835462f9a7f1`
+SHA-256: `534dae7fb9dc5d23fd70a756dbd05951aed7e7c40c97243b89fd2ee1bd327238`
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -76,7 +76,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.16.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.0.17.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -203,6 +203,16 @@ Set each channel to 1 minute–24 hours in the Timer tab and select **Save to de
 OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart it. Changing a running timer's duration starts the new full duration. Channels restored ON after reboot also restart the full duration; remaining time is not persisted. Expiry turns the channel OFF regardless of its physical-button lock.
 
 ## Version History
+
+### 2.0.17 — October 18, 2026
+
+- Bundle Firmware-tab initialization with the common controller to prevent a separate script download failure from leaving labels and buttons blank.
+- Load common scripts sequentially on all tabs and retry failed downloads after three seconds with a loading notice.
+- Add an eight-second firmware-status request timeout, three-second retry on failure, and refresh on Firmware-tab selection or browser visibility restoration.
+- After a successful standalone update, wait five seconds, then check reconnection every three seconds for up to two minutes. Reload the Firmware tab only after a new Build ID is observed.
+- Show manual reconnect instructions on timeout, without automatically resending firmware. Preserve same-image and stock-restore behavior.
+- Installing this version from an older page requires one manual refresh. Automatic reload applies to subsequent updates initiated from the refreshed UI.
+- Align web UI, MQTT Discovery and web API version labels to 2.0.17.
 
 ### 2.0.16 — October 18, 2026
 

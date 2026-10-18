@@ -112,7 +112,7 @@
     scheduleEditor.translate();
     timerEditor.translate();
     document.documentElement.lang=preferences.language;document.title=t('title');byId('language').textContent=preferences.language==='ko'?'English':'Korean';
-    byId('current-firmware-version').textContent='2.0.15';
+    byId('current-firmware-version').textContent='2.0.17';
     for(const [attribute,target] of [['data-i18n',null],['data-i18n-placeholder','placeholder'],['data-i18n-aria','aria-label']])document.querySelectorAll('['+attribute+']').forEach(element=>{const text=t(element.getAttribute(attribute));if(target)element.setAttribute(target,text);else element.textContent=text;});
     for(let i=1;i<=4;i++)byId('channel-name-label-'+i).textContent=t('channelName',{number:i});
     render();renderNetwork();renderStatuses();renderFirmware();renderSelectedFile();renderLogs();time();

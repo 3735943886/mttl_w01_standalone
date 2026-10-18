@@ -21,7 +21,7 @@ html=html.replace('<section id="device" class="active"','<section id="device"')
 html=html.replace('<section id="wifi" role=','<section id="wifi" class="active" role=')
 if options.ota_test:
     panel='''<section id="firmware" role="tabpanel" aria-labelledby="tab-firmware"><div class="panel">
-<h2 data-i18n="firmware">펌웨어</h2><div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.16</b></div>
+<h2 data-i18n="firmware">펌웨어</h2><div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.0.17</b></div>
 <div class="sensor"><span>Build ID</span><b id="current-build-id">—</b></div>
 <p id="ota-hint" class="muted"></p><form id="firmware-form">
 <label id="ota-file-label" for="firmware-picker"></label><input id="firmware-file" type="file" accept=".fwr" hidden>
@@ -29,7 +29,8 @@ if options.ota_test:
 <div class="row"><button id="firmware-verify" type="button" hidden></button><button id="firmware-update" class="primary" disabled></button></div></form>
 <div id="firmware-status" class="status" role="status" aria-live="polite"></div></div></section>'''
     html=re.sub(r'<section id="firmware".*?</section>',lambda _:panel,html,flags=re.S)
-    html=html.replace('<script src="live.js"></script>','<script src="live.js"></script><script src="ota-live.js"></script>')
+    # OTA initialization is bundled with the common controller below: it cannot
+    # be lost independently while the rest of the dashboard appears healthy.
 # Device assets must not briefly display PC sample readings before JavaScript loads.
 for field, value in {'ip':'—','mac':'—','online':'—','connected-ssid':'—',
                      'rssi':'— dBm','uptime':'—','total':'— W','current':'— A','all':'—'}.items():
@@ -62,7 +63,12 @@ html=html.replace('<script src="timer.js"></script>','')
 sources[0]=('/', 'text/html; charset=utf-8', html.encode())
 sources[-1]=('/live.js','application/javascript; charset=utf-8',(ROOT/'standalone/ui/scheduler.js').read_bytes()+b'\n'+(ROOT/'standalone/ui/timer.js').read_bytes()+b'\n'+sources[-1][2])
 if options.ota_test:
-    sources.append(('/ota-live.js','application/javascript; charset=utf-8',(ROOT/'standalone/ui/ota-live.js').read_bytes()))
+    sources[-1]=('/live.js','application/javascript; charset=utf-8',sources[-1][2]+b'\n'+(ROOT/'standalone/ui/ota-live.js').read_bytes())
+# Load dependencies sequentially and retry failed downloads on every dashboard
+# tab. Keep this small bootstrap inline so it needs no additional HTTP request.
+loader=(ROOT/'standalone/ui/device-loader.js').read_text(encoding='utf-8')
+html=html.replace('<script src="i18n.js"></script>','').replace('<script src="live.js"></script>','<script>'+loader+'</script>')
+sources[0]=('/', 'text/html; charset=utf-8',html.encode())
 # Preview-only translations do not belong in the RAM-resident device image.
 # Retain literal keys in HTML/JS, plus dynamically constructed state keys.
 messages=json.loads(subprocess.check_output(['node','-e',
