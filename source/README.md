@@ -1,4 +1,4 @@
-# MTTL-W01 2.0.17 — Firmware source
+# MTTL-W01 2.0.18 — Firmware source
 
 한국어 | [English](README_EN.md)
 

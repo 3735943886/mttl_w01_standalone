@@ -6,7 +6,7 @@
 
 ## 펌웨어 빌드 도구 1.0.0 및 소스
 
-[빌드 도구 1.0.0 다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [펌웨어 2.0.17 및 소스 ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.17)
+[빌드 도구 1.0.0 다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [펌웨어 2.0.18 및 소스 ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.18)
 
 [빌드 도구 사용법](builder/README.md) · [펌웨어 소스 안내](source/README.md)
 
@@ -32,11 +32,11 @@ MQTT로 Home Assistant에 연결하는 독립 펌웨어입니다.
 
 ### 펌웨어 다운로드
 
-**2.0.17 / build `981749bcbdfe3915` · 2026-10-18**
+**2.0.18 / build `8af7825ca26a7548` · 2026-10-20**
 
-[comMTTL-W01_2.0.17.fwr 다운로드](firmware/comMTTL-W01_2.0.17.fwr)
+[comMTTL-W01_2.0.18.fwr 다운로드](firmware/comMTTL-W01_2.0.18.fwr)
 
-SHA-256: `534dae7fb9dc5d23fd70a756dbd05951aed7e7c40c97243b89fd2ee1bd327238`
+SHA-256: `e69a14a10a4bb1348378ef7ef20e76ce5143a286d57462c7b4bb4a4fbc618ea5`
 
 기존 독립 펌웨어 사용자는 기기 웹의 **펌웨어** 탭에서 위 파일로 업데이트할 수 있습니다.
 
@@ -76,7 +76,7 @@ SHA-256: `534dae7fb9dc5d23fd70a756dbd05951aed7e7c40c97243b89fd2ee1bd327238`
 사용합니다. **Wi-Fi 설정 도구가 아니라 OTA 도구**를 내려받으십시오.
 도구 및 운영체제별 지원 범위는 해당 저장소 안내를 따릅니다.
 
-1. 이 저장소의 `comMTTL-W01_2.0.17.fwr`와 운영체제에 맞는 OTA 도구를 준비합니다.
+1. 이 저장소의 `comMTTL-W01_2.0.18.fwr`와 운영체제에 맞는 OTA 도구를 준비합니다.
 2. 순정 멀티탭의 메인 버튼을 10초 이상 눌러 설정 모드로 전환합니다.
 3. PC에서 `TONLY_TAP_xxxxxxx` Wi-Fi에 연결합니다. 암호는
    `LGU_xxxxxxx`이며 뒤의 문자열은 해당 AP 이름과 동일하게 입력합니다.
@@ -204,6 +204,12 @@ NTP 동기화 후 실행하며, 최초 동기화·재부팅·예약 설정 변�
 채널 ON 시 시작하고 OFF 시 취소됩니다. 이미 ON인 채널에 ON 명령을 반복해도 다시 시작하지 않습니다. ON 중 시간을 변경하면 새 시간부터 시작하며, 재부팅 후 ON으로 복원된 채널도 전체 시간부터 다시 시작합니다. 남은 시간 자체는 플래시에 저장하지 않습니다. 물리 버튼 잠금과 무관하게 만료 시 OFF됩니다.
 
 ## Version History
+
+### 2.0.18 — 2026-10-20
+
+- 타이머 탭의 채널 1–4 카드 제목을 가운데 정렬합니다.
+- 로그창 높이를 300px에서 600px로 확대합니다.
+- 사용자 기기에서 정상 동작을 확인했습니다.
 
 ### 2.0.17 — 2026-10-18
 
