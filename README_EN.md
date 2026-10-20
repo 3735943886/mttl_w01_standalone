@@ -2,6 +2,8 @@
 
 [한국어](README.md) | English
 
+> **Users of 2.0.x are advised to upgrade to 2.1.0 or later.** Version 2.0.x repeatedly saves settings and energy data to a small set of fixed flash sectors, which can accumulate wear during prolonged use. Version 2.1.0 uses 128KiB circular storage and hourly energy saves to reduce erase frequency and distribute wear. This does not mean an existing device has already exhausted its flash endurance. **On the first upgrade from 2.0.x to 2.1.0, existing settings and energy data are not migrated; Wi-Fi and other settings must be configured again.**
+
 Project-authored code is available under the [MIT License](LICENSE). Third-party components retain their existing terms. [License scope](LICENSING.md)
 
 ## Firmware Builder 1.0.0 and source
