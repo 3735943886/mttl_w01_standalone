@@ -13,8 +13,9 @@ int mttl_ota_plan_make(const mttl_ota_layout *l,uint32_t active,uint32_t bytes,m
     uint32_t target,limit,rounded;if(!l||!out||bytes<=20)return 0;
     if(!l->first||((l->first|l->second|l->protected_start|l->flash_size)&4095u))return 0;
     if(!(l->first<l->second&&l->second<l->protected_start&&l->protected_start<=l->flash_size))return 0;
+    if(l->first_end&&((l->first_end&4095u)||l->first_end<=l->first||l->first_end>l->second))return 0;
     if(active!=l->first&&active!=l->second)return 0;
-    target=active==l->first?l->second:l->first;limit=target==l->first?l->second:l->protected_start;
+    target=active==l->first?l->second:l->first;limit=target==l->first?(l->first_end?l->first_end:l->second):l->protected_start;
     if(bytes>limit-target)return 0;
     if(bytes>UINT32_MAX-4095u)return 0;
     rounded=(bytes+4095u)&~4095u;if(rounded>limit-target)return 0;

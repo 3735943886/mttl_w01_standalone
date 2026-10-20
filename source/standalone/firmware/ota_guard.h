@@ -2,7 +2,8 @@
 #define MTTL_OTA_GUARD_H
 #include <stdint.h>
 #include <stddef.h>
-typedef struct {uint32_t first,second,protected_start,flash_size;} mttl_ota_layout;
+/* first_end=0 retains the legacy test/layout convention. */
+typedef struct {uint32_t first,second,protected_start,flash_size,first_end;} mttl_ota_layout;
 typedef struct {uint32_t target,erase_end,capacity;} mttl_ota_plan;
 /* Signature classification only. NOT proof of execution slot or boot order. */
 enum {MTTL_OTA_INVALID,MTTL_OTA_EMPTY,MTTL_OTA_NEW,MTTL_OTA_OLD};

@@ -9,7 +9,7 @@ static int read(void *p,uint32_t a,uint8_t *out,size_t n){uint32_t base;unsigned
  if(a<base||a-base>600||n>600-(a-base)||n>256){bad=1;return 0;}
  if(++calls==cut)return 0;memcpy(out,slots[slot]+a-base,n);return 1;
 }
-void mttl_ota_identity_test(void){mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000};unsigned i,total;
+void mttl_ota_identity_test(void){mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000,0};unsigned i,total;
  memset(slots,0,sizeof(slots));for(i=0;i<512;i++)running[i]=(uint8_t)(i*13);
  for(i=0;i<2;i++){slots[i][0]=0x18;slots[i][1]=2;slots[i][5]=0x60;slots[i][7]=0x10;}
  memcpy(slots[0]+40,running,512);

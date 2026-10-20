@@ -1,5 +1,7 @@
 # MTTL-W01 Recovery 1.0.0
 
+> **Compatibility:** This 1.0.0 tool targets the 2.0.x storage format. Populated 2.1.0 journal data can trigger its protective refusal. It is not a validated recovery tool for 2.1.0.
+
 [한국어](README.md) | English
 
 [Download recovery tool](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0) · [Project](../README_EN.md) · [Third-party components](THIRD_PARTY_NOTICES.md)

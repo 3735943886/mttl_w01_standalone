@@ -20,7 +20,7 @@ static int stage_read(void *p,uint32_t a,uint8_t *d,size_t n){return mttl_sdk_ot
 static uint8_t upload[4097];
 static void put(uint8_t *p,uint32_t v){unsigned k;for(k=0;k<4;k++)p[k]=(uint8_t)(v>>(8*k));}
 static int transfer(mttl_sdk_ota_flash *p,mttl_ota_stage *s,const uint8_t expected[32]){
- mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000};mttl_ota_stage_io io={p,stage_erase,stage_write,stage_read};size_t pos=0;
+ mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000,0};mttl_ota_stage_io io={p,stage_erase,stage_write,stage_read};size_t pos=0;
  if(!mttl_ota_stage_begin(s,&l,0xb000,sizeof(upload),expected,&io))return 0;
  while(pos<sizeof(upload)){size_t n=sizeof(upload)-pos;if(n>257)n=257;if(!mttl_ota_stage_feed(s,upload+pos,n))return 0;pos+=n;}
  return mttl_ota_stage_finish(s);

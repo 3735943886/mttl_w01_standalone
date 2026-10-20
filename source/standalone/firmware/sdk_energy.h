@@ -4,6 +4,7 @@
 #include "hardware_port.h"
 void mttl_sdk_energy_init(const mttl_settings *,uint32_t now);
 void mttl_sdk_energy_tick(mttl_settings *,mttl_hardware_samples *,uint32_t now);
+void mttl_sdk_energy_clock(int valid,uint32_t unix_seconds,int timezone_minutes);
 int mttl_sdk_energy_flush(const mttl_settings *);
 int mttl_sdk_energy_reset(mttl_settings *,mttl_hardware_samples *,uint32_t now);
 int mttl_sdk_energy_relay_saved(unsigned known,unsigned on);

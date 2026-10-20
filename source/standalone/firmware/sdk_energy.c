@@ -7,8 +7,18 @@ static uint32_t saved_raw[4],saved_wh[4],attempt_at;
 static uint8_t saved_valid,restore_pending,loaded_valid;
 static uint8_t saved_relay_known,saved_relay_on;
 static uint32_t save_count,save_failures;
+static uint32_t high_hour,periodic_retry_at;
+static int clock_valid,clock_primed,clock_zone,periodic_due,periodic_retry;
 static void remember(const mttl_settings *s){memcpy(saved_raw,s->energy_raw,sizeof(saved_raw));memcpy(saved_wh,s->energy_wh,sizeof(saved_wh));saved_valid=s->energy_valid;saved_relay_known=s->relay_known;saved_relay_on=s->relay_on;}
-void mttl_sdk_energy_init(const mttl_settings *s,uint32_t now){remember(s);attempt_at=now;restore_pending=loaded_valid=s->energy_valid;save_count=save_failures=0;}
+void mttl_sdk_energy_init(const mttl_settings *s,uint32_t now){remember(s);attempt_at=now;restore_pending=loaded_valid=s->energy_valid;save_count=save_failures=0;clock_valid=clock_primed=periodic_due=periodic_retry=0;high_hour=periodic_retry_at=0;clock_zone=0;}
+/* Local-hour high water prevents duplicate saves after backward NTP steps.
+ * First sync/zone change primes without saving; forward jumps save once. */
+void mttl_sdk_energy_clock(int valid,uint32_t seconds,int zone){
+ uint32_t hour;int64_t local=(int64_t)seconds+(int64_t)zone*60;
+ clock_valid=valid&&local>=0;if(!clock_valid)return;hour=(uint32_t)(local/3600);
+ if(!clock_primed||clock_zone!=zone){high_hour=hour;clock_zone=zone;clock_primed=1;return;}
+ if(hour>high_hour){high_hour=hour;periodic_due=1;}
+}
 unsigned mttl_sdk_energy_restore_pending(void){return restore_pending;}
 unsigned mttl_sdk_energy_saved_mask(void){return saved_valid;}
 unsigned mttl_sdk_energy_loaded_mask(void){return loaded_valid;}
@@ -39,13 +49,19 @@ void mttl_sdk_energy_tick(mttl_settings *s,mttl_hardware_samples *samples,uint32
   mttl_meter_checkpoint prior,next;int ok;
   prior.raw=s->energy_raw[ch];prior.value=s->energy_wh[ch];prior.valid=(s->energy_valid>>ch)&1;
   ok=((mask>>ch)&1)&&(uint32_t)(now-samples->current[ch].at)<=MTTL_SENSOR_MAX_AGE_MS&&mttl_meter_checkpoint_step(&prior,1,raw[ch],&next);
-  if(ok){s->energy_raw[ch]=next.raw;s->energy_wh[ch]=next.value;s->energy_valid|=1u<<ch;restore_pending&=~(1u<<ch);}
+  /* A new journal starts at zero even if the metering IC retained its raw
+   * counter across an OTA-only reboot. Persisted checkpoints still use deltas. */
+  if(ok){if(!prior.valid)next.value=0;s->energy_raw[ch]=next.raw;s->energy_wh[ch]=next.value;s->energy_valid|=1u<<ch;restore_pending&=~(1u<<ch);}
   /* A cumulative meter retains its persisted last good value on read failure. */
   mttl_hardware_sample(&samples->meter[ch],(s->energy_valid>>ch)&1,(int32_t)s->energy_wh[ch],now);
   if(!(s->energy_valid&(1u<<ch)))all=0;else if(s->energy_wh[ch]>0x7fffffffu-(uint32_t)total)all=0;else total+=(int32_t)s->energy_wh[ch];
  }
  mttl_hardware_sample(&samples->total_meter,all,total,now);
- if((uint32_t)(now-attempt_at)>=300000u){attempt_at=now;(void)mttl_sdk_energy_flush(s);}
+ if(!clock_valid&&(uint32_t)(now-attempt_at)>=3600000u)periodic_due=1;
+ if(periodic_due&&(!periodic_retry||(uint32_t)(now-periodic_retry_at)>=5000u)){
+  periodic_retry_at=now;periodic_retry=1;
+  if(mttl_sdk_energy_flush(s)){periodic_due=periodic_retry=0;attempt_at=now;}
+ }
 #else
  (void)s;(void)samples;(void)now;
 #endif

@@ -1,5 +1,7 @@
 # MTTL-W01 Recovery 1.0.0
 
+> **호환성:** 이 1.0.0 툴은 기존 2.0.x 저장 형식을 대상으로 합니다. 2.1.0의 새 순환 저장 데이터가 채워져 있으면 보호 검사에서 복구를 거부할 수 있습니다. 2.1.0용으로 검증된 복구 툴이 아닙니다.
+
 한국어 | [English](README_EN.md)
 
 [복구 툴 다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0) · [프로젝트](../README.md) · [제3자 구성 및 라이선스](THIRD_PARTY_NOTICES.md)

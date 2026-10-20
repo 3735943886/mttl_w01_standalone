@@ -8,7 +8,7 @@ uint32_t mttl_ota_identity(const mttl_ota_layout *l,const uint8_t *running,size_
  if(!l||!running||!read||verified!=1||n<256||n>0x6a000||offset<24||offset>0x6a000-n||!mttl_ota_plan_make(l,l->first,44,&plan))return 0;
  mttl_ota_hash_init(&hash);mttl_ota_hash_update(&hash,running,n);mttl_ota_hash_finish(&hash,wanted);
  for(slot=0;slot<2;slot++){
-  uint32_t base=slot?l->second:l->first,limit=slot?l->protected_start:l->second,body,pos=0;
+  uint32_t base=slot?l->second:l->first,limit=slot?l->protected_start:(l->first_end?l->first_end:l->second),body,pos=0;
   if(16+offset+n>limit-base)return 0;
   if(read(context,base,data,8)!=1)return 0;body=word(data);
   if(word(data+4)!=0x10006000||body<24||body>0x6a000||body+20>limit-base||offset+n>body)continue;

@@ -1,4 +1,6 @@
-# MTTL-W01 2.0.18 — Firmware source
+# MTTL-W01 2.1.0 — Firmware source
+
+> **First installation of 2.1.0:** Settings and energy from 2.0.x are not migrated. After reboot, join `MTTL-W01-SETUP` and reconfigure Wi-Fi and other settings. The device may not return to its old IP. Web downgrade to 2.0.x is unsupported; Recovery 1.0.0 does not support the new storage format.
 
 [한국어](README.md) | English
 

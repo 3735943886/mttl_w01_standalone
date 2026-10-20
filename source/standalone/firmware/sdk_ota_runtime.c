@@ -9,7 +9,7 @@
 #include <string.h>
 flash_t flash;
 extern unsigned char __ram_image2_text_start__[],__data_start__[];
-static const mttl_ota_layout layout={0xb000,0x80000,0xee000,0x100000};
+static const mttl_ota_layout layout={0xb000,0x80000,0xe0000,0x100000,0x70000};
 static mttl_ota_session session;
 static mttl_sdk_ota_flash adapter;
 static uint32_t active;

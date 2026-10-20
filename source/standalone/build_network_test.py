@@ -35,7 +35,7 @@ def main():
     assert syms['__mttl_msp_top']-syms['__mttl_msp_limit']==4096
     body,sections=initialized_body(elf.read_bytes())
     assert (b'NETWORK_OTA_TEST_RAM_SETTINGS_' if ota else b'NETWORK_TEST_NO_OTA_RAM_SETTINGS\0') in body
-    assert '2.0.18' in inspect_image(package_body(body)[0]).version_candidates
+    assert '2.1.0' in inspect_image(package_body(body)[0]).version_candidates
     # Inspect actual setup machine code: a direct BL must start the worker.
     import re
     dis=run('arm-none-eabi-objdump','-d',elf)
@@ -67,15 +67,16 @@ def main():
     subprocess.run([str(tool/'arm-none-eabi-objcopy.exe'),*args,str(elf),str(objcopy)],check=True)
     assert objcopy.read_bytes()==body
     raw,fwr=package_body(body)
+    assert len(raw)<=0x60000 and ((len(raw)+4095)&~4095)<=0x60000, "Image overlaps journal banks"
     assert raw[0x28:0x48]==b'LGU+-TAP-HW002'.ljust(32,b'\0')
     assert syms['mttl_native_ota_hardware']==0x10006018
     files=[]
     for ext,data in (('bin',raw),('fwr',fwr)):
-        path=out/(('mttl-w01-2.0.18-network-OTA-test.' if ota else 'mttl-w01-2.0.18-network-test-NO-OTA.')+ext)
+        path=out/(('mttl-w01-2.1.0-network-OTA-test.' if ota else 'mttl-w01-2.1.0-network-test-NO-OTA.')+ext)
         path.write_bytes(data)
         assert inspect_image(path.read_bytes()).decoded==raw
         files.append({'path':str(path),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
-    report={'version':'2.0.18','profile':'NETWORK_OTA_TEST_RAM_SETTINGS' if ota else 'NETWORK_TEST_NO_OTA_RAM_SETTINGS',
+    report={'version':'2.1.0','profile':'NETWORK_OTA_TEST_RAM_SETTINGS' if ota else 'NETWORK_TEST_NO_OTA_RAM_SETTINGS',
             'elf_sha256':hashlib.sha256(elf.read_bytes()).hexdigest(),'files':files,
             'network_start_verified_in_setup_machine_code':True,
             'setup_arm_mock_success_failure_cases':2,
@@ -86,7 +87,7 @@ def main():
             'boot_signature':'FFFFFFFFFFFFFFFF','device_written':False,
             'target_boot_verified':False,'validation_profile':'Portable format/roundtrip and setup emulator; original decoder fixture not included','production_ready':False,
             'relay_enabled':options.relay_test,'settings_persistent':False,'ota_write_enabled':ota,
-            'settings_flash_enabled':True,'settings_sectors':['0xee000','0xef000'],
+            'settings_flash_enabled':True,'settings_banks':[['0x70000','0x80000'],['0xe0000','0xf0000']],'settings_record_bytes':1024,'settings_migration':False,
             'initial_rtos_heap_bytes':(39 if options.sensor_test else 48)*1024 if ota else 100*1024,
             'sensor_gpio_enabled':options.sensor_test,
             'ota_runtime_validated':False,
@@ -97,6 +98,6 @@ def main():
     (out/'manifest.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     if ota:
         import shutil
-        shutil.copyfile(out/'mttl-w01-2.0.18-network-OTA-test.fwr',out/'comMTTL-W01_2.0.18.fwr')
+        shutil.copyfile(out/'mttl-w01-2.1.0-network-OTA-test.fwr',out/'comMTTL-W01_2.1.0.fwr')
     print(json.dumps(report,indent=2))
 if __name__=='__main__':main()

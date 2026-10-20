@@ -35,7 +35,7 @@ static int run(mttl_ota_stage *s,const mttl_ota_layout *l,uint32_t active,uint32
  return mttl_ota_stage_finish(s);
 }
 void mttl_ota_stage_test(void){
- mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000};mttl_ota_stage s;uint8_t hash[32];unsigned a,b,cut,total;
+ mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000,0};mttl_ota_stage s;uint8_t hash[32];unsigned a,b,cut,total;
  const uint32_t sizes[]={46,4095,4096,4097,8193,65536,0x6a014};const size_t chunks[]={1,255,256,257,4096};
  for(a=0;a<sizeof(sizes)/sizeof(sizes[0]);a++){uint32_t n=sizes[a];make(n,hash);
  for(b=0;b<2;b++){memset(&f,0,sizeof(f));f.base=b?l.first:l.second;f.end=f.base+((n+4095)&~4095u);

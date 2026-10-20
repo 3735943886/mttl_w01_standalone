@@ -6,7 +6,7 @@ Project-authored code is available under the [MIT License](LICENSE). Third-party
 
 ## Firmware Builder 1.0.0 and source
 
-[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.0.18 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.0.18)
+[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.1.0 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.1.0)
 
 [Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
 
@@ -16,6 +16,8 @@ The developer accepts no responsibility for problems or consequences arising fro
 ![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
 
 ## Wired recovery — ST Link V2
+
+> **Recovery tool 1.0.0 targets 2.0.x and does not support the 2.1.0 journal format.**
 
 If a problem during a firmware update makes web OTA unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md) for wired recovery. Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
 
@@ -32,11 +34,14 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ### Firmware download
 
-**2.0.18 / build `8af7825ca26a7548` · October 20, 2026**
+**2.1.0 / build `7fedec1dc7d5173d` · October 20, 2026**
 
-[Download comMTTL-W01_2.0.18.fwr](firmware/comMTTL-W01_2.0.18.fwr)
+[Download comMTTL-W01_2.1.0.fwr](firmware/comMTTL-W01_2.1.0.fwr)
 
-SHA-256: `e69a14a10a4bb1348378ef7ef20e76ce5143a286d57462c7b4bb4a4fbc618ea5`
+SHA-256: `9c35186a181ec97aa1bdb23dacf48cba0fcde4ea7b804b0f18835face0252e28`
+
+> **First installation of 2.1.0:** Settings and energy from 2.0.x are not migrated. After reboot, join `MTTL-W01-SETUP` and reconfigure Wi-Fi and other settings. The device may not return to its old IP. Web downgrade to 2.0.x is unsupported; Recovery 1.0.0 does not support the new storage format.
+
 
 Existing standalone users can update through the device's **Firmware** tab.
 
@@ -76,7 +81,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.0.18.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.1.0.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -203,6 +208,17 @@ Set each channel to 1 minute–24 hours in the Timer tab and select **Save to de
 OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart it. Changing a running timer's duration starts the new full duration. Channels restored ON after reboot also restart the full duration; remaining time is not persisted. Expiry turns the channel OFF regardless of its physical-button lock.
 
 ## Version History
+
+### 2.1.0 — October 20, 2026
+
+- Append full settings, energy checkpoints and logical relay states as 1KiB records across two 64KiB banks (128KiB total), with four records per 4KiB sector before moving on.
+- Use sequence numbers, CRCs, a final completion marker and readback validation to recover the newest valid record. Skip unchanged payloads.
+- Save cumulative energy at each local hourly boundary using the configured timezone. Before NTP synchronization, use a one-hour interval; suppress repeated hours after backward clock corrections.
+- Retain saves on configuration apply, ten seconds after the last completed relay command, energy reset and OTA checkpoint.
+- **No migration from 2.0.x. On first installation, reconfigure Wi-Fi, MQTT, names, locks, protection, schedules and timers. Energy starts at zero from the first valid metering observation.**
+- Enforce separate OTA end boundaries to protect both storage banks, preserving boot, OEM parameters, factory and calibration areas.
+- Initial boot, web/sensor responses and persistent configuration status after Wi-Fi setup were confirmed on the test device. Hourly persistence, reboot restoration and long-term stability still require separate physical verification.
+- **Web downgrades to 2.0.x are unsupported. Recovery tool 1.0.0 is not compatible with the new storage format.**
 
 ### 2.0.18 — October 20, 2026
 

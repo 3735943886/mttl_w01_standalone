@@ -262,7 +262,12 @@ void mttl_integration_test(void){mttl_settings s;mttl_mqtt_engine e;mttl_mqtt_io
  check(!mttl_ota_hash_parse("bad",expected));check(!mttl_ota_hash_parse("za7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",expected));
  check(mttl_ota_hash_parse("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",expected));mttl_ota_hash_init(&h);check(mttl_ota_hash_finish(&h,digest)&&!memcmp(digest,expected,32));
  }
- {mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000};mttl_ota_plan p;
+ {mttl_ota_layout l={0xb000,0x80000,0xf0000,0x100000,0};mttl_ota_plan p;
+  {mttl_ota_layout j={0xb000,0x80000,0xe0000,0x100000,0x70000};
+   check(mttl_ota_plan_make(&j,0x80000,0x65000,&p)&&p.erase_end==0x70000);
+   check(!mttl_ota_plan_make(&j,0x80000,0x65001,&p));
+   check(mttl_ota_plan_make(&j,0xb000,0x60000,&p)&&p.erase_end==0xe0000);
+   check(!mttl_ota_plan_make(&j,0xb000,0x60001,&p));}
  check(mttl_ota_plan_make(&l,0xb000,276160,&p)&&p.target==0x80000&&p.erase_end<=0xf0000);
  check(mttl_ota_plan_make(&l,0x80000,276160,&p)&&p.target==0xb000&&p.erase_end<=0x80000);
  check(!mttl_ota_plan_make(&l,0,276160,&p));check(!mttl_ota_plan_make(&l,0xb000,0x70001,&p));check(!mttl_ota_plan_make(&l,0xb000,0xffffffffu,&p));
