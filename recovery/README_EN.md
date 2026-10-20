@@ -1,12 +1,13 @@
-# MTTL-W01 Recovery 1.0.0
+# MTTL-W01 Recovery 1.1
 
-> **Compatibility:** This 1.0.0 tool targets the 2.0.x storage format. Populated 2.1.0 journal data can trigger its protective refusal. It is not a validated recovery tool for 2.1.0.
 
 [한국어](README.md) | English
 
-[Download recovery tool](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0) · [Project](../README_EN.md) · [Third-party components](THIRD_PARTY_NOTICES.md)
+[Download recovery tool](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.1) · [Project](../README_EN.md) · [Third-party components](THIRD_PARTY_NOTICES.md)
 
 A portable Windows x64 tool for reading a **fully detached MTTL-W01 Wi-Fi board** over ST Link V2/SWD and restoring stock 1.0.66 while preserving a verified backup from that same device.
+
+Recovery 1.1 handles storage from 2.1.0 and earlier standalone firmware and restores stock 1.0.66. Settings and energy history are erased. Physical recovery validation is still pending.
 
 ![MTTL-W01 Recovery tool](docs/recovery-tool-1.0.0.png)
 
@@ -27,7 +28,7 @@ This is for people capable of verifying power, ground, signal levels and solder 
 
 ## Requirements and download
 
-1. Get `MTTL-Recovery-1.0.0-Windows-x64.zip` and its checksum from [Recovery 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0).
+1. Get `MTTL-Recovery-1.1-Windows-x64.zip` and its checksum from [Recovery 1.1 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.1).
 2. Extract the whole ZIP into a writable folder. Do not move the EXE alone. A short ASCII path such as `D:\MTTL-Recovery` is recommended.
 3. If necessary, install [ST's STSW-LINK009 USB driver](https://www.st.com/en/development-tools/stsw-link009.html).
 4. Internet access is required on first use. Stock 1.0.66 FWR is included in the ZIP and used automatically without file selection. Only OpenOCD is downloaded from its official release. Both components are checked against pinned SHA-256 values. Sources/hashes are in [third-party notices](THIRD_PARTY_NOTICES.md).
@@ -74,7 +75,7 @@ The upper-right red circle is **VCC_5V**, not the nearby GND2 pad. The user conf
 4. Diagnose boot code, slots and protected boundaries. Failed/mismatching backups never permit writes.
 5. Generate a recovery image from that device's own dump, without importing donor identity data.
 6. Write/verify slot 2 and make it bootable before replacing/verifying slot 1. Final signatures: slot 1 NEW, slot 2 OLD.
-7. Clear standalone settings at **`0xEE000–0xEFFFF`**. Unknown data in settings-sector tails stops recovery.
+7. Clear legacy standalone settings and both 2.1.0 journal banks: **`0x70000–0x7FFFF`**, **`0xE0000–0xEFFFF`** (128KiB total). Corrupt or incomplete records are also cleared; no version selection is needed.
 8. Read back the full flash and compare byte-for-byte with the expected image. Request reset only on an exact match.
 
 A full recovery image is generated, but only intended changed regions are programmed. `0x00000–0x0AFFF` and `0xF0000–0xFFFFF` are preserved. There is no mass-erase or donor-full-image operation. This does not directly clear the stock firmware's own registration information.

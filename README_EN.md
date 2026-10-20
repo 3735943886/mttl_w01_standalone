@@ -17,7 +17,7 @@ The developer accepts no responsibility for problems or consequences arising fro
 
 ## Wired recovery — ST Link V2
 
-> **Recovery tool 1.0.0 targets 2.0.x and does not support the 2.1.0 journal format.**
+> **Recovery 1.1 supports restoring 2.1.0 and earlier standalone firmware to stock 1.0.66. Settings/energy are erased; physical recovery testing of the integrated tool is still pending.**
 
 If a problem during a firmware update makes web OTA unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md) for wired recovery. Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
 

@@ -1,10 +1,7 @@
-# 1.0.0 local validation
+# Recovery 1.1 validation
 
-- Offline core/workflow: 13 unittest scenarios passed. Includes exact stock FWR validation, corrupt/BIN/full-dump refusal, supported map/boot identity, settings-tail guard, identical complete backups, full reconstructed image, original boot/factory preservation, partial write/readback failures, no reset on failure, archive traversal/link rejection and cached-download verification.
-- Windows x64 frozen EXE self-test: Korean/English widgets initialized, stock FWR decoded, OpenOCD version query successful; no USB/target access.
-- Extracted ZIP into a path containing spaces and Korean characters; frozen EXE self-test passed there. This does not validate physical target transfers in those paths.
-- OpenOCD HLA SWD / RTL8710 configuration parsed, followed by shutdown before target initialization. No adapter access or writes.
-- Actual ST Link V2 connection, double read, erase/write, reset and stock boot have NOT been tested with this integrated tool. The public release is explicitly marked as physically unvalidated; no physical recovery success is claimed.
-- Diagnostic/backup-only mode is the default. Recovery requires explicit isolation confirmation and restore selection. Both modes keep the CPU halted on unsuccessful completion; a power-cycle is needed after successful diagnosis to boot normally.
-- ZIP includes no device dump, sessions, credentials, SDK or compiler. OpenOCD EXE/DLLs are not bundled; first-use pinned download retrieves them directly from the documented source. OEM stock 1.0.66 FWR is included, hash-checked and used automatically without a file picker. GPL flasher sources and licenses are provided as described in THIRD_PARTY_NOTICES.md.
-- Runtime manifest verifies the EXE, bundled Python/Tk runtime, OpenOCD executable/DLLs/scripts and stock FWR before target connection. Unit tests cover intact, modified and unsafe manifest cases. Failure logs include the last verified write step.
+- Offline unittest scenarios cover stock FWR identity/checksum, boot/map rejection, double backup mismatch, protected boot/factory preservation, both full 64KiB storage banks, legacy/J210/torn/arbitrary records, write failures and readback failures without reset.
+- Windows x64 EXE and extracted portable ZIP self-tests verify GUI languages, included firmware, runtime hashes and OpenOCD version without USB access.
+- Stock 1.0.66 remains the bundled recovery target. No version selection or migration is required; standalone settings/energy are erased.
+- Physical ST Link V2 reads, target erase/write, reset and recovery boot have NOT been tested with this integrated tool. Offline tests are not evidence of physical recovery success. Pre-release status is retained.
+- Backup-only is the default. Boot/factory/calibration areas remain protected. No device backups, credentials or sessions are distributed.

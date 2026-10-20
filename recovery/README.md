@@ -1,12 +1,13 @@
-# MTTL-W01 Recovery 1.0.0
+# MTTL-W01 Recovery 1.1
 
-> **호환성:** 이 1.0.0 툴은 기존 2.0.x 저장 형식을 대상으로 합니다. 2.1.0의 새 순환 저장 데이터가 채워져 있으면 보호 검사에서 복구를 거부할 수 있습니다. 2.1.0용으로 검증된 복구 툴이 아닙니다.
 
 한국어 | [English](README_EN.md)
 
-[복구 툴 다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0) · [프로젝트](../README.md) · [제3자 구성 및 라이선스](THIRD_PARTY_NOTICES.md)
+[복구 툴 다운로드](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.1) · [프로젝트](../README.md) · [제3자 구성 및 라이선스](THIRD_PARTY_NOTICES.md)
 
 웹 OTA를 사용할 수 없는 MTTL-W01의 **분리한 Wi-Fi 보드**를 ST Link V2/SWD로 읽고, 본인 기기의 백업을 보존하면서 순정 1.0.66으로 복구하는 Windows x64 포터블 도구입니다.
+
+복구 툴 1.1은 2.1.0과 이전 독립펌웨어의 저장 영역을 처리해 순정 1.0.66으로 복구합니다. 기존 설정·누적량은 삭제됩니다. 실제 보드 복구 검증은 아직 하지 않았습니다.
 
 ![MTTL-W01 복구 툴 화면](docs/recovery-tool-1.0.0.png)
 
@@ -27,7 +28,7 @@
 
 ## 준비물과 다운로드
 
-1. [Recovery 1.0.0 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.0.0)에서 `MTTL-Recovery-1.0.0-Windows-x64.zip`과 체크섬을 받습니다.
+1. [Recovery 1.1 Release](https://github.com/af950833/mttl_w01_standalone/releases/tag/recovery-v1.1)에서 `MTTL-Recovery-1.1-Windows-x64.zip`과 체크섬을 받습니다.
 2. ZIP의 전체 내용을 쓰기 가능한 폴더에 풉니다. EXE만 단독으로 옮기지 마십시오. `D:\MTTL-Recovery` 같은 짧은 영문 경로를 권장합니다.
 3. ST Link V2를 인식하지 못하면 [ST 공식 STSW-LINK009 드라이버](https://www.st.com/en/development-tools/stsw-link009.html)를 설치합니다.
 4. 최초 작업 시 인터넷이 필요합니다. 순정 1.0.66 FWR는 ZIP에 포함되어 있으며 파일 선택 없이 자동 사용합니다. OpenOCD만 공식 배포처에서 자동 다운로드합니다. 두 구성 모두 고정 SHA-256으로 검사합니다. 출처와 해시는 [제3자 안내](THIRD_PARTY_NOTICES.md)에 있습니다.
@@ -74,7 +75,7 @@
 4. 부트 코드·슬롯 배치·보호 경계 확인. 백업 실패/불일치 상태에서는 기록하지 않음.
 5. 본인 덤프를 바탕으로 복구 이미지 생성. 다른 기기의 고유 정보를 사용하지 않음.
 6. 슬롯 2를 기록·검증·부팅 가능하게 만든 뒤 슬롯 1을 기록·검증. 정상 최종 상태는 슬롯 1 NEW, 슬롯 2 OLD.
-7. 독립펌웨어 설정 영역 **`0xEE000–0xEFFFF`** 초기화. 설정 영역 뒷부분에 알 수 없는 데이터가 있으면 중단.
+7. 이전 독립펌웨어 설정과 2.1.0의 128KiB 순환 저장 영역 **`0x70000–0x7FFFF`**, **`0xE0000–0xEFFFF`**를 초기화합니다. 손상·불완전 기록도 초기화 대상이며 별도 버전 선택은 필요 없습니다.
 8. 전체 플래시를 다시 읽어 예상 이미지와 바이트 단위 비교. 일치할 때만 재부팅 요청.
 
 전체 이미지를 만들어도 실제 기록은 변경 대상 영역만 수행합니다. `0x00000–0x0AFFF`와 `0xF0000–0xFFFFF`는 보존합니다. 부트로더·고유 정보·보정 영역을 덮는 전체 삭제 기능은 없습니다. 순정 자체의 등록 정보를 직접 초기화하는 기능도 아닙니다.
