@@ -6,25 +6,6 @@
 
 Project-authored code is available under the [MIT License](LICENSE). Third-party components retain their existing terms. [License scope](LICENSING.md)
 
-## Firmware Builder 1.0.0 and source
-
-[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.1.1 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.1.1)
-
-[Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
-
-The developer accepts no responsibility for problems or consequences arising from user modifications or self-built firmware. Questions and troubleshooting requests related to user modifications or builds are not supported. Please do not open issues for these topics.
-
-
-![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
-
-## Wired recovery — ST Link V2
-
-> **Recovery 1.1 supports restoring 2.1.x and earlier standalone firmware to stock 1.0.66. Settings/energy are erased; physical recovery testing of the integrated tool is still pending.**
-
-If a problem during a firmware update makes web OTA unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md) for wired recovery. Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
-
-![MTTL-W01 Recovery tool](recovery/docs/recovery-tool-1.0.0.png)
-
 ## Prebuilt firmware — ready to install
 
 Download and install the FWR below without building it yourself.
@@ -214,6 +195,25 @@ Web/HA individual and all-channel ON/OFF, schedules and protection remain functi
 Set each channel to 1 minute–24 hours in the Timer tab and select **Save to device**. Save zero hours and minutes to remove a timer. A channel may belong to either timers or schedules, not both.
 
 OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart it. Changing a running timer's duration starts the new full duration. Channels restored ON after reboot also restart the full duration; remaining time is not persisted. Expiry turns the channel OFF regardless of its physical-button lock.
+
+## Firmware Builder 1.0.0 and source
+
+[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.1.1 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.1.1)
+
+[Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
+
+The developer accepts no responsibility for problems or consequences arising from user modifications or self-built firmware. Questions and troubleshooting requests related to user modifications or builds are not supported. Please do not open issues for these topics.
+
+
+![MTTL-W01 Firmware Builder 1.0.0](docs/builder-1.0.0.png)
+
+## Wired recovery — ST Link V2
+
+> **Recovery 1.1 supports restoring 2.1.x and earlier standalone firmware to stock 1.0.66. Settings/energy are erased; physical recovery testing of the integrated tool is still pending.**
+
+If a problem during a firmware update makes web OTA unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md) for wired recovery. Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
+
+![MTTL-W01 Recovery tool](recovery/docs/recovery-tool-1.0.0.png)
 
 ## Version History
 
