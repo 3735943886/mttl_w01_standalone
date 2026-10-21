@@ -47,6 +47,7 @@
         <div id="name-status" class="status" role="status"></div>
       </form></div>
       <div class="time muted"><span data-i18n="currentTime">현재 시각</span> <span id="clock">—</span> · <span data-i18n="recentConnection">최근 연결</span> <span id="connected">—</span> · <span data-i18n="uptime">가동</span> <span id="uptime">0초</span></div>
+      <p id="storage-status" class="muted" role="status">—</p>
       <div class="summary"><div><small data-i18n="totalPower">전체 전력</small><b id="total">0.0 W</b></div><div><small data-i18n="meter">누적 전력량</small><b>1.551 kWh</b></div><div><small data-i18n="voltage">전압</small><b>220.0 V</b></div><div><small data-i18n="totalCurrent">전체 전류</small><b id="current">0.000 A</b></div><div><small data-i18n="all">전체</small><b id="all">OFF</b></div></div>
       <div class="controls"><button id="all-on" data-i18n="allOn">전체 켜기</button> <button id="all-off" data-i18n="allOff">전체 끄기</button></div>
     </div>
@@ -86,7 +87,7 @@
   <section id="timer" role="tabpanel" aria-labelledby="tab-timer"><div class="panel"><h2 data-i18n="timer">타이머</h2><form id="timer-form"><div id="timer-editor"></div><div id="timer-status" class="status" role="status"></div></form></div></section>
   <section id="firmware" role="tabpanel" aria-labelledby="tab-firmware">
     <div class="panel"><h2 data-i18n="firmware">펌웨어</h2>
-      <div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.1.0</b></div>
+      <div class="sensor"><span data-i18n="currentVersion">현재 버전</span><b id="current-firmware-version">2.1.1</b></div>
       <p class="muted" data-i18n="firmwareHint">현재: 독립 펌웨어 화면 초안 · 선택한 파일의 형식과 체크섬을 PC에서 검사합니다.</p>
       <form id="firmware-form">
         <label for="firmware-picker" data-i18n="firmwareFile">펌웨어 파일 (.fwr / Image2 .bin)</label><input id="firmware-file" type="file" accept=".fwr,.bin" hidden>

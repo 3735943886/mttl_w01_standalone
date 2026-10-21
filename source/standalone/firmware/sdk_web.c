@@ -21,7 +21,7 @@ static void ota_redirect(struct httpd_conn *c){
  httpd_conn_close(c);
 }
 extern int mttl_httpd_stopped(void);
-static const char version[]="{\"version\":\"2.1.0\"}";
+static const char version[]="{\"version\":\"2.1.1\"}";
 static void response(struct httpd_conn *connection,const char *body,size_t length,char *type){
     if(httpd_response_write_header_start(connection,"200 OK",type,length)<0 ||
        httpd_response_write_header(connection,"Cache-Control","no-store")<0 ||
@@ -86,7 +86,7 @@ static void status_page(struct httpd_conn *c){
     mttl_sdk_status_snapshot(&status);hex_ssid(status.ssid,hex);
     if(status.rssi_valid)snprintf(rssi,sizeof(rssi),"%ld",(long)status.rssi);else strcpy(rssi,"null");
     {char time[32],connected[32];strcpy(time,"null");strcpy(connected,"null");if(status.time_valid)decimal64(status.unix_ms,time);if(status.connected_unix_ms)decimal64(status.connected_unix_ms,connected);
-    size=snprintf(json,sizeof(json),"{\"state\":%lu,\"ip\":%lu,\"uptime_ms\":%lu,\"rssi\":%s,\"ssid_hex\":\"%s\",\"mac\":\"%s\",\"unix_ms\":%s,\"connected_unix_ms\":%s,\"meter_initialized\":%u,\"meter_reads\":%u,\"energy_reads\":%u,\"energy_counter_raw\":[%lu,%lu,%lu,%lu],\"energy_restore_pending\":%u,\"hardware_ready\":%s}",(unsigned long)status.state,(unsigned long)status.ip,(unsigned long)status.uptime_ms,rssi,hex,status.mac,time,connected,(unsigned)status.meter_initialized,(unsigned)status.meter_reads,(unsigned)status.energy_reads,(unsigned long)status.energy_raw[0],(unsigned long)status.energy_raw[1],(unsigned long)status.energy_raw[2],(unsigned long)status.energy_raw[3],(unsigned)status.energy_restore_pending,status.hardware_ready?"true":"false");}
+    size=snprintf(json,sizeof(json),"{\"state\":%lu,\"ip\":%lu,\"uptime_ms\":%lu,\"rssi\":%s,\"ssid_hex\":\"%s\",\"mac\":\"%s\",\"unix_ms\":%s,\"connected_unix_ms\":%s,\"meter_initialized\":%u,\"meter_reads\":%u,\"energy_reads\":%u,\"energy_counter_raw\":[%lu,%lu,%lu,%lu],\"energy_restore_pending\":%u,\"storage\":[%lu,%lu,%lu,%lu],\"hardware_ready\":%s}",(unsigned long)status.state,(unsigned long)status.ip,(unsigned long)status.uptime_ms,rssi,hex,status.mac,time,connected,(unsigned)status.meter_initialized,(unsigned)status.meter_reads,(unsigned)status.energy_reads,(unsigned long)status.energy_raw[0],(unsigned long)status.energy_raw[1],(unsigned long)status.energy_raw[2],(unsigned long)status.energy_raw[3],(unsigned)status.energy_restore_pending,(unsigned long)status.storage[0],(unsigned long)status.storage[1],(unsigned long)status.storage[2],(unsigned long)status.storage[3],status.hardware_ready?"true":"false");}
     if(size<0||(size_t)size>=sizeof(json)){httpd_response_internal_server_error(c,0);httpd_conn_close(c);return;}send(c,json,size,"application/json");
 }
 static void memory_page(struct httpd_conn *c){
@@ -131,7 +131,7 @@ cleanup:
 static void info(struct httpd_conn *c){send(c,version,sizeof(version)-1,"application/json");}
 #ifdef MTTL_OTA_TEST
 static void ota_status(struct httpd_conn *c){
-    uint32_t active=mttl_sdk_ota_probe();int n=snprintf(json,sizeof(json),"{\"version\":\"2.1.0\",\"build_id\":\"" MTTL_OTA_BUILD_ID "\",\"ota_ready\":%s,\"active_slot\":%lu,\"settings_persistent\":%s,\"restore_versions\":[\"1.0.66\",\"1.0.68\"]}",active?"true":"false",(unsigned long)active,mttl_sdk_settings_persistent()?"true":"false");
+    uint32_t active=mttl_sdk_ota_probe();int n=snprintf(json,sizeof(json),"{\"version\":\"2.1.1\",\"build_id\":\"" MTTL_OTA_BUILD_ID "\",\"ota_ready\":%s,\"active_slot\":%lu,\"settings_persistent\":%s,\"restore_versions\":[\"1.0.66\",\"1.0.68\"]}",active?"true":"false",(unsigned long)active,mttl_sdk_settings_persistent()?"true":"false");
     if(n>0&&(size_t)n<sizeof(json))send(c,json,n,"application/json");else{httpd_response_internal_server_error(c,0);httpd_conn_close(c);}
 }
 static int ota_access(struct httpd_conn *c){

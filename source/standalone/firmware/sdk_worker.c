@@ -370,11 +370,13 @@ static void worker(void *p){
         if(mttl_sdk_meter_protection(&device.samples,&device.settings.protection,&device.protection))protection_off();
         if(storage_begin()){uint64_t time=0;int valid=mttl_time_now(&device.ntp.time,clock_ms(0),&time);
          mttl_sdk_energy_clock(valid,(uint32_t)(time/1000),device.settings.schedule.timezone);
+         mttl_sdk_settings_clock(valid?(uint32_t)(time/1000):0);
          mttl_sdk_energy_tick(&device.settings,&device.samples,clock_ms(0));storage_end();}
         publish_snapshots(clock_ms(0));
         {
             mttl_worker_status current;unsigned i;int rssi=0;
             memset(&current,0,sizeof(current));
+            mttl_sdk_settings_status(current.storage);
             current.hardware_ready=device.hardware.verified&&!device.control.fault;
             current.meter_initialized=mttl_sdk_meter_initialized();current.meter_reads=mttl_sdk_meter_reads();
             current.energy_restore_pending=(uint8_t)mttl_sdk_energy_restore_pending();

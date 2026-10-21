@@ -8,7 +8,7 @@ Project-authored code is available under the [MIT License](LICENSE). Third-party
 
 ## Firmware Builder 1.0.0 and source
 
-[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.1.0 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.1.0)
+[Download Builder 1.0.0](https://github.com/af950833/mttl_w01_standalone/releases/tag/builder-v1.0.0) · [Firmware 2.1.1 and Source ZIP](https://github.com/af950833/mttl_w01_standalone/releases/tag/v2.1.1)
 
 [Builder usage guide](builder/README_EN.md) · [Firmware source guide](source/README_EN.md)
 
@@ -36,11 +36,11 @@ MTTL-W01, without a separate backend or router DNAT.
 
 ### Firmware download
 
-**2.1.0 / build `7fedec1dc7d5173d` · October 20, 2026**
+**2.1.1 / build `33231c0032fa013b` · October 22, 2026**
 
-[Download comMTTL-W01_2.1.0.fwr](firmware/comMTTL-W01_2.1.0.fwr)
+[Download comMTTL-W01_2.1.1.fwr](firmware/comMTTL-W01_2.1.1.fwr)
 
-SHA-256: `9c35186a181ec97aa1bdb23dacf48cba0fcde4ea7b804b0f18835face0252e28`
+SHA-256: `362f92df30f16fadcfd012ba20557ce58466f08706e99bca6cf6e1f67ae1ce9f`
 
 > **First installation of 2.1.0:** Settings and energy from 2.0.x are not migrated. After reboot, join `MTTL-W01-SETUP` and reconfigure Wi-Fi and other settings. The device may not return to its old IP. Web downgrade to 2.0.x is unsupported; Recovery 1.0.0 does not support the new storage format.
 
@@ -89,7 +89,7 @@ Use [ttaengz's OTA tools](https://github.com/ttaengz/mttl-w01-matterbridge#펌�
 Download the **OTA tool**, not the separate Wi-Fi configuration tool. Follow the
 upstream instructions for supported operating systems and tool controls.
 
-1. Download this repository's `comMTTL-W01_2.1.0.fwr` and the OTA tool for your operating system.
+1. Download this repository's `comMTTL-W01_2.1.1.fwr` and the OTA tool for your operating system.
 2. Hold the stock device's main button for at least ten seconds to enter setup.
 3. Connect the PC to `TONLY_TAP_xxxxxxx`, using password `LGU_xxxxxxx` with the
    same suffix shown in the AP name.
@@ -216,6 +216,15 @@ Set each channel to 1 minute–24 hours in the Timer tab and select **Save to de
 OFF→ON starts the timer; OFF cancels it. Repeated ON commands do not restart it. Changing a running timer's duration starts the new full duration. Channels restored ON after reboot also restart the full duration; remaining time is not persisted. Expiry turns the channel OFF regardless of its physical-button lock.
 
 ## Version History
+
+### 2.1.1 — October 22, 2026
+
+- Display the last flash-write time, latest save-attempt status and save-failure count since boot on the power-strip dashboard.
+- Track physical saves for settings, relay states, energy and OTA checkpoints. Unchanged payloads do not update the last-write time.
+- Keep diagnostics in RAM only, with no extra flash writes or polling requests. After reboot, show no writes since boot / waiting / zero failures. Stored settings and energy remain intact.
+- Show time not synchronized for writes before clock synchronization. The existing status poll may take about 20 seconds to reflect a write.
+- Retain the 2.1.0 128KiB journal format, hourly energy saves and ten-second relay-save debounce. Settings and energy are preserved when upgrading from 2.1.0.
+- Storage telemetry, persistence/OTA and web regression checks passed. The user confirmed normal operation after installing on a physical device.
 
 ### 2.1.0 — October 20, 2026
 

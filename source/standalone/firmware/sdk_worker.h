@@ -2,7 +2,7 @@
 #define MTTL_SDK_WORKER_H
 #include <stdint.h>
 #include <stddef.h>
-typedef struct { uint32_t state,ip,uptime_ms; int32_t rssi; uint8_t rssi_valid; char ssid[33]; char mac[18]; uint64_t unix_ms,connected_unix_ms; uint8_t time_valid,meter_initialized,meter_reads,energy_reads; uint32_t energy_raw[4]; uint8_t energy_restore_pending; uint32_t heap_free_bytes,heap_min_free_bytes,worker_observed_stack_descent_bytes; uint32_t energy_save_count,energy_save_failures; uint8_t energy_saved_mask,energy_loaded_mask,hardware_ready; } mttl_worker_status;
+typedef struct { uint32_t state,ip,uptime_ms; int32_t rssi; uint8_t rssi_valid; char ssid[33]; char mac[18]; uint64_t unix_ms,connected_unix_ms; uint8_t time_valid,meter_initialized,meter_reads,energy_reads; uint32_t energy_raw[4]; uint8_t energy_restore_pending; uint32_t heap_free_bytes,heap_min_free_bytes,worker_observed_stack_descent_bytes; uint32_t energy_save_count,energy_save_failures; uint8_t energy_saved_mask,energy_loaded_mask,hardware_ready; uint32_t storage[4]; } mttl_worker_status;
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -121,6 +121,14 @@ async function storeConfiguration(c,password='',keep=true){if(![2,5].includes(sn
     const ip=snapshot?.ip;el('ip').textContent=Number.isInteger(ip)&&ip>0?[ip>>>24,(ip>>>16)&255,(ip>>>8)&255,ip&255].join('.'):'—';
     el('connected-ssid').textContent=snapshot?hexText(snapshot.ssid_hex)||'—':'—';
     el('rssi').textContent=(snapshot&&Number.isInteger(snapshot.rssi)?snapshot.rssi:'—')+' dBm';
+    const storage=el('storage-status');
+    const st=snapshot?.storage,ko=language==='ko';
+    if(!Array.isArray(st)||st.length!==4){storage.textContent=ko?'저장 상태: —':'Storage: —';}
+    else {
+      const saved=st[1]?(st[0]?date(st[0]*1000):(ko?'저장됨 · 시각 미동기화':'Saved · time not synchronized')):(ko?'이번 부팅 후 저장 기록 없음':'No writes since boot');
+      const state=st[3]?(ko?'최근 저장 시도 실패':'Last save attempt failed'):(st[1]?(ko?'정상':'OK'):(ko?'대기':'Waiting'));
+      storage.textContent=(ko?'마지막 플래시 저장: ':'Last flash save: ')+saved+' · '+(ko?'저장 상태: ':'Status: ')+state+' · '+(ko?'이번 부팅 후 실패: ':'Failures since boot: ')+st[2];
+    }
     {const s=Math.floor((snapshot?.uptime_ms||0)/1000);el('uptime').textContent=snapshot?t('duration',{days:Math.floor(s/86400),hours:Math.floor(s/3600)%24,minutes:Math.floor(s/60)%60,seconds:s%60}):'—';}
     el('wifi-status').textContent=t(wifiMessage||('netState'+(snapshot?.state??0)));
     el('mqtt-status').textContent=t('netState'+([0,1,3,3,3,5,6][deviceSnapshot?.mqtt_state]??0));
@@ -132,7 +140,7 @@ async function storeConfiguration(c,password='',keep=true){if(![2,5].includes(sn
     document.title='MTTL-W01';for(let i=1;i<=4;i++)el('channel-name-label-'+i).textContent=t('channelName',{number:i});
     for(const [attr,target] of [['data-i18n',null],['data-i18n-placeholder','placeholder'],['data-i18n-aria','aria-label']])document.querySelectorAll('['+attr+']').forEach(n=>target?n.setAttribute(target,t(n.getAttribute(attr))):n.textContent=t(n.getAttribute(attr)));
     el('scan').textContent=t('realScan');document.querySelector('#wifi-form button.primary').textContent=t('realConnect');
-    el('current-firmware-version').textContent='2.1.0';el('firmware-status').textContent=t('integrationPending');el('mqtt-status').textContent=t('integrationPending');el('firmware-selected').textContent=t('noSelectedFile');
+    el('current-firmware-version').textContent='2.1.1';el('firmware-status').textContent=t('integrationPending');el('mqtt-status').textContent=t('integrationPending');el('firmware-selected').textContent=t('noSelectedFile');
     document.querySelector('#mqtt-form button.primary').textContent=language==='en'?'Save to device':'기기에 저장';
     renderLog();render();
   }

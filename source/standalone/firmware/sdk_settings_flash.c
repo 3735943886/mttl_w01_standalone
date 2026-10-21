@@ -11,6 +11,10 @@ extern flash_t flash;
 #define COUNT 128u
 static int scanned,latest=-1;
 static uint32_t sequence;
+/* RAM-only diagnostics: never create extra flash writes for telemetry. */
+static uint32_t clock_unix,last_saved_unix,writes,failures,last_failed;
+void mttl_sdk_settings_clock(uint32_t unix_seconds){clock_unix=unix_seconds;}
+void mttl_sdk_settings_status(uint32_t out[4]){out[0]=last_saved_unix;out[1]=writes;out[2]=failures;out[3]=last_failed;}
 static uint32_t address(unsigned s){return s<64?0x70000u+s*RECORD:0xe0000u+(s-64)*RECORD;}
 static uint32_t word(const uint8_t *p){return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24;}
 static void put(uint8_t *p,uint32_t n){unsigned i;for(i=0;i<4;i++)p[i]=(uint8_t)(n>>(8*i));}
@@ -56,7 +60,7 @@ int mttl_sdk_settings_load(mttl_settings *out){uint8_t *b;int result=-1;
   else if(read_record((unsigned)latest,b)&&valid(b)&&mttl_settings_storage_unpack(b+16,word(b+8),out))result=1;}
  memset(b,0,RECORD);vPortFree(b);return result;
 }
-int mttl_sdk_settings_save(const mttl_settings *in){uint8_t *b;unsigned target,i;size_t n;uint32_t seq;int result=-1;
+static int save_record(const mttl_settings *in){uint8_t *b;unsigned target,i;size_t n;uint32_t seq;int result=-1;
  if(!in||!mttl_settings_valid(in)||!geometry())return -1;
  b=pvPortMalloc(RECORD);if(!b)return -1;if(!scan(b))goto done;
  if(latest>=0){uint8_t *body=pvPortMalloc(RECORD);int same=0;if(!body)goto done;
@@ -72,5 +76,7 @@ int mttl_sdk_settings_save(const mttl_settings *in){uint8_t *b;unsigned target,i
  for(i=0;i<COMMIT;){unsigned take=COMMIT-i;if(take>256)take=256;if(!program(target,i,b+i,take))goto done;i+=take;}
  put(b+COMMIT,0);if(!program(target,COMMIT,b+COMMIT,4)||!read_record(target,b)||!valid(b)||word(b+4)!=seq)goto done;
  latest=(int)target;sequence=seq;result=1;
+ if(writes!=0xffffffffu)++writes;last_saved_unix=clock_unix;
 done:if(result<0)scanned=0;memset(b,0,RECORD);vPortFree(b);return result;
 }
+int mttl_sdk_settings_save(const mttl_settings *in){int result=save_record(in);last_failed=result!=1;if(last_failed&&failures!=0xffffffffu)++failures;return result;}
