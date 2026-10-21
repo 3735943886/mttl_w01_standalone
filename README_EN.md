@@ -2,7 +2,7 @@
 
 [한국어](README.md) | English
 
-> **Users of 2.0.x are advised to upgrade to 2.1.0 or later.** Version 2.0.x repeatedly saves settings and energy data to a small set of fixed flash sectors, which can accumulate wear during prolonged use. Version 2.1.0 uses 128KiB circular storage and hourly energy saves to reduce erase frequency and distribute wear. This does not mean an existing device has already exhausted its flash endurance. **On the first upgrade from 2.0.x to 2.1.0, existing settings and energy data are not migrated; Wi-Fi and other settings must be configured again.**
+> **Users of 2.0.x are advised to upgrade to 2.1.x or later.** Version 2.0.x repeatedly saves settings and energy data to a small set of fixed flash sectors, which can accumulate wear during prolonged use. Version 2.1.x uses 128KiB circular storage and hourly energy saves to reduce erase frequency and distribute wear. This does not mean an existing device has already exhausted its flash endurance. **On the first upgrade from 2.0.x to 2.1.x, existing settings and energy data are not migrated; Wi-Fi and other settings must be configured again.**
 
 Project-authored code is available under the [MIT License](LICENSE). Third-party components retain their existing terms. [License scope](LICENSING.md)
 
@@ -19,7 +19,7 @@ The developer accepts no responsibility for problems or consequences arising fro
 
 ## Wired recovery — ST Link V2
 
-> **Recovery 1.1 supports restoring 2.1.0 and earlier standalone firmware to stock 1.0.66. Settings/energy are erased; physical recovery testing of the integrated tool is still pending.**
+> **Recovery 1.1 supports restoring 2.1.x and earlier standalone firmware to stock 1.0.66. Settings/energy are erased; physical recovery testing of the integrated tool is still pending.**
 
 If a problem during a firmware update makes web OTA unavailable, see the [ST Link V2 recovery tool and wiring/usage guide](recovery/README_EN.md) for wired recovery. Full AC-board disconnection is mandatory; read the tool's validation limits and safety instructions first.
 
@@ -42,7 +42,7 @@ MTTL-W01, without a separate backend or router DNAT.
 
 SHA-256: `362f92df30f16fadcfd012ba20557ce58466f08706e99bca6cf6e1f67ae1ce9f`
 
-> **First installation of 2.1.0:** Settings and energy from 2.0.x are not migrated. After reboot, join `MTTL-W01-SETUP` and reconfigure Wi-Fi and other settings. The device may not return to its old IP. Web downgrade to 2.0.x is unsupported; Recovery 1.0.0 does not support the new storage format.
+> **First installation of 2.1.x:** Settings and energy from 2.0.x are not migrated. After reboot, join `MTTL-W01-SETUP` and reconfigure Wi-Fi and other settings. The device may not return to its old IP. Web downgrade to 2.0.x is unsupported; Recovery 1.0.0 does not support the new storage format.
 
 
 Existing standalone users can update through the device's **Firmware** tab.
@@ -53,7 +53,7 @@ Power cutoff was verified on the test device using a 1000W threshold and a hair 
 
 ### Save cumulative energy before disconnecting power
 
-Version 2.1.0 saves cumulative energy at each hourly boundary. An unexpected power disconnection can therefore lose **up to approximately one hour of energy accumulated since the last save.**
+Version 2.1.x saves cumulative energy at each hourly boundary. An unexpected power disconnection can therefore lose **up to approximately one hour of energy accumulated since the last save.**
 
 Before a planned disconnection, choose a channel that can be operated without disrupting connected equipment, actually **switch it ON or OFF**, and **wait at least ten seconds after the last switch command has completed** before disconnecting power. Saving relay states also saves the current cumulative energy. Change the actual state rather than sending ON to a channel that is already ON. Any further switch operation restarts the waiting period from its completion. This preserves the readings available at save time; it does not guarantee against losses caused by an outage or a failed save.
 
