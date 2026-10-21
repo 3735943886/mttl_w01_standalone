@@ -51,6 +51,12 @@ Compatibility with every hardware variant is not guaranteed. Failed installation
 may require debugger recovery. Software protection cannot replace hardware safety devices.
 Power cutoff was verified on the test device using a 1000W threshold and a hair dryer load. Current/temperature cutoff and measurement accuracy still require separate hardware verification.
 
+### Save cumulative energy before disconnecting power
+
+Version 2.1.0 saves cumulative energy at each hourly boundary. An unexpected power disconnection can therefore lose **up to approximately one hour of energy accumulated since the last save.**
+
+Before a planned disconnection, choose a channel that can be operated without disrupting connected equipment, actually **switch it ON or OFF**, and **wait at least ten seconds after the last switch command has completed** before disconnecting power. Saving relay states also saves the current cumulative energy. Change the actual state rather than sending ON to a channel that is already ON. Any further switch operation restarts the waiting period from its completion. This preserves the readings available at save time; it does not guarantee against losses caused by an outage or a failed save.
+
 ## Features
 
 - Per-channel physical-button locks: web/HA/schedules/protection remain active; blocked button actions flash the affected LEDs three times
